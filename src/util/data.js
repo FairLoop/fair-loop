@@ -446,3 +446,6 @@ export const humanizeLineItemCode = code => {
 
   return lowercase.charAt(0).toUpperCase() + lowercase.slice(1);
 };
+
+// Helper to transform response to listing id array
+export const responseListingIds = data => data.data.map(l => l.id);

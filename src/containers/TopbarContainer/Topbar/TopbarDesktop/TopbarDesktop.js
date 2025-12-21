@@ -12,6 +12,7 @@ import {
   MenuContent,
   MenuItem,
   NamedLink,
+  ExtraIcons,
 } from '../../../../components';
 
 import TopbarSearchForm from '../TopbarSearchForm/TopbarSearchForm';
@@ -209,6 +210,15 @@ const TopbarDesktop = props => {
         hasClientSideContentReady={authenticatedOnClientSide || !isAuthenticatedOrJustHydrated}
         showCreateListingsLink={showCreateListingsLink}
       />
+
+      <NamedLink
+        name="FavoriteListingsPage"
+        className={classNames(css.topbarLink, css.favoriteLink)}
+      >
+        <span className={css.topbarLinkLabel}>
+          <ExtraIcons icon="heart" />
+        </span>
+      </NamedLink>
 
       {inboxLinkMaybe}
       {profileMenuMaybe}

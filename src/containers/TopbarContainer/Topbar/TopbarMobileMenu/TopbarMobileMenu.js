@@ -172,6 +172,12 @@ const TopbarMobileMenu = props => {
 
         <div className={css.accountLinksWrapper}>
           <NamedLink
+            className={classNames(css.inbox, currentPageClass(`FavoriteListingsPage`))}
+            name="FavoriteListingsPage"
+          >
+            <FormattedMessage id="TopbarMobileMenu.favoritesLink" />
+          </NamedLink>
+          <NamedLink
             className={classNames(css.inbox, currentPageClass(`InboxPage:${inboxTab}`))}
             name="InboxPage"
             params={{ tab: inboxTab }}
