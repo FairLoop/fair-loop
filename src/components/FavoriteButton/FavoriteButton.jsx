@@ -34,8 +34,8 @@ const FavoriteButton = props => {
   const isComponentDisabled =
     !isVisible ||
     !currentListingId ||
-    !currentUser ||
-    !isAuthenticated ||
+    // !currentUser ||
+    // !isAuthenticated ||
     listingAuthor?.id?.uuid === currentUser?.id?.uuid;
 
   const handleClick = useCallback(
@@ -74,7 +74,7 @@ const FavoriteButton = props => {
     return null;
   }
 
-  console.log('yolooo')
+  console.log('yolooo');
   return (
     <div
       className={classes}
@@ -82,10 +82,7 @@ const FavoriteButton = props => {
       onClick={handleClick}
       aria-disabled={`${profileUpdateInProgress}`}
     >
-      <ExtraIcons
-        className={iconClasses}
-        icon={isFavorite ? 'heartIcon' : 'heartOutline'}
-      />
+      <ExtraIcons className={iconClasses} icon={isFavorite ? 'heartIcon' : 'heartOutline'} />
     </div>
   );
 };
