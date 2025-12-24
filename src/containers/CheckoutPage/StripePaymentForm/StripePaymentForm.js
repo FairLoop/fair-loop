@@ -25,6 +25,8 @@ import {
 import ShippingDetails from '../ShippingDetails/ShippingDetails';
 
 import css from './StripePaymentForm.module.css';
+import cardImage from './card.png';
+import idealImage from './ideal.png';
 
 /**
  * Translate a Stripe API error object.
@@ -323,8 +325,10 @@ class StripePaymentForm extends Component {
       } = this.props;
       this.stripe = window.Stripe(publishableKey);
       onStripeInitialized(this.stripe);
-
-      if (!(hasHandledCardPayment || defaultPaymentMethod || loadingData)) {
+      if (
+        !(hasHandledCardPayment || defaultPaymentMethod || loadingData) &&
+        this.props.initialValues.paymentMethodType === 'card'
+      ) {
         this.initializeStripeElement();
       }
     }
@@ -373,13 +377,16 @@ class StripePaymentForm extends Component {
   }
 
   changePaymentMethod(changedTo) {
-    if (this.card && changedTo === 'defaultCard') {
+    if (this.card && (changedTo === 'defaultCard' || changedTo === 'ideal')) {
       this.card.removeEventListener('change', this.handleCardValueChange);
       this.card.unmount();
       this.card = null;
       this.setState({ cardValueValid: false });
     }
-    this.setState({ paymentMethod: changedTo });
+
+    if (changedTo !== 'ideal') {
+      this.setState({ paymentMethod: changedTo });
+    }
     if (changedTo === 'defaultCard' && this.finalFormAPI) {
       this.finalFormAPI.change('sameAddressCheckbox', undefined);
     } else if (changedTo === 'replaceCard' && this.finalFormAPI) {
@@ -477,6 +484,7 @@ class StripePaymentForm extends Component {
       isBooking,
       isFuzzyLocation,
       values,
+      disablePaymentMethodTypeChange,
     } = formRenderProps;
 
     this.finalFormAPI = formApi;
@@ -485,6 +493,8 @@ class StripePaymentForm extends Component {
     const billingDetailsNeeded = !(hasHandledCardPayment || confirmPaymentError);
 
     const { cardValueValid, paymentMethod } = this.state;
+    const { paymentMethodType } = values;
+    const isIdeal = paymentMethodType === 'ideal';
     const hasDefaultPaymentMethod = ensuredDefaultPaymentMethod.id;
     const selectedPaymentMethod = getPaymentMethod(paymentMethod, hasDefaultPaymentMethod);
     const { onetimePaymentNeedsAttention, showOnetimePaymentFields } = checkOnetimePaymentFields(
@@ -494,7 +504,8 @@ class StripePaymentForm extends Component {
       hasHandledCardPayment
     );
 
-    const submitDisabled = invalid || onetimePaymentNeedsAttention || submitInProgress;
+    const submitDisabled =
+      invalid || (!isIdeal && onetimePaymentNeedsAttention) || submitInProgress;
     const hasCardError = this.state.error && !submitInProgress;
     const hasPaymentErrors = confirmCardPaymentError || confirmPaymentError;
     const classes = classNames(rootClassName || css.root, className);
@@ -575,78 +586,121 @@ class StripePaymentForm extends Component {
           intl={intl}
         />
 
-        {billingDetailsNeeded && !loadingData ? (
-          <React.Fragment>
-            {hasDefaultPaymentMethod ? (
-              <PaymentMethodSelector
-                cardClasses={cardClasses}
-                formId={formId}
-                defaultPaymentMethod={ensuredDefaultPaymentMethod}
-                changePaymentMethod={this.changePaymentMethod}
-                handleStripeElementRef={this.handleStripeElementRef}
-                hasCardError={hasCardError}
-                error={this.state.error}
-                paymentMethod={selectedPaymentMethod}
-                intl={intl}
-                marketplaceName={marketplaceName}
-              />
-            ) : (
-              <React.Fragment>
-                <Heading as="h3" rootClassName={css.heading}>
-                  <FormattedMessage id="StripePaymentForm.paymentHeading" />
-                </Heading>
-                <OneTimePaymentWithCardElement
-                  cardClasses={cardClasses}
-                  formId={formId}
-                  handleStripeElementRef={this.handleStripeElementRef}
-                  hasCardError={hasCardError}
-                  error={this.state.error}
-                  intl={intl}
-                  marketplaceName={marketplaceName}
-                />
-              </React.Fragment>
-            )}
-
-            {showOnetimePaymentFields ? (
-              <div className={css.billingDetails}>
-                <Heading as="h3" rootClassName={css.heading}>
-                  <FormattedMessage id="StripePaymentForm.billingDetails" />
-                </Heading>
-
-                {askShippingDetails ? (
-                  <FieldCheckbox
-                    className={css.sameAddressCheckbox}
-                    textClassName={css.sameAddressLabel}
-                    id="sameAddressCheckbox"
-                    name="sameAddressCheckbox"
-                    label={intl.formatMessage({
-                      id: 'StripePaymentForm.sameBillingAndShippingAddress',
-                    })}
-                    value="sameAddress"
-                    useSuccessColor
-                    onChange={handleSameAddressCheckbox}
-                  />
-                ) : null}
-
-                <FieldTextInput
-                  className={css.field}
-                  type="text"
-                  id="name"
-                  name="name"
-                  autoComplete="cc-name"
-                  label={billingDetailsNameLabel}
-                  placeholder={billingDetailsNamePlaceholder}
-                />
-
-                {billingAddress}
+        {!disablePaymentMethodTypeChange && (
+          <div className={css.paymentMethodTypeSection}>
+            <Heading as="h3" rootClassName={css.heading}>
+              <FormattedMessage id="StripePaymentForm.paymentMethodTypeLabel" />
+            </Heading>
+            <div className={css.paymentMethodOptions}>
+              <div
+                className={classNames(css.paymentMethodOption, {
+                  [css.paymentMethodOptionSelected]: paymentMethodType === 'ideal',
+                })}
+                onClick={() => {
+                  formApi.change('paymentMethodType', 'ideal');
+                  formApi.change('sameAddressCheckbox', undefined);
+                  this.changePaymentMethod('ideal');
+                }}
+                role="button"
+                tabIndex={0}
+              >
+                <img src={idealImage} alt="iDeal" className={css.paymentMethodIcon} />
+                <span className={css.paymentMethodOptionText}>iDeal</span>
               </div>
+              <div
+                className={classNames(css.paymentMethodOption, {
+                  [css.paymentMethodOptionSelected]: paymentMethodType !== 'ideal',
+                })}
+                onClick={() => {
+                  formApi.change('paymentMethodType', 'card');
+                  formApi.change('sameAddressCheckbox', undefined);
+                }}
+                role="button"
+                tabIndex={0}
+              >
+                <img src={cardImage} alt="Card" className={css.paymentMethodIcon} />
+                <span className={css.paymentMethodOptionText}>Card</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!isIdeal && (
+          <>
+            {billingDetailsNeeded && !loadingData ? (
+              <React.Fragment>
+                {hasDefaultPaymentMethod ? (
+                  <PaymentMethodSelector
+                    cardClasses={cardClasses}
+                    formId={formId}
+                    defaultPaymentMethod={ensuredDefaultPaymentMethod}
+                    changePaymentMethod={this.changePaymentMethod}
+                    handleStripeElementRef={this.handleStripeElementRef}
+                    hasCardError={hasCardError}
+                    error={this.state.error}
+                    paymentMethod={selectedPaymentMethod}
+                    intl={intl}
+                    marketplaceName={marketplaceName}
+                  />
+                ) : (
+                  <React.Fragment>
+                    <Heading as="h3" rootClassName={css.heading}>
+                      <FormattedMessage id="StripePaymentForm.paymentHeading" />
+                    </Heading>
+                    <OneTimePaymentWithCardElement
+                      cardClasses={cardClasses}
+                      formId={formId}
+                      handleStripeElementRef={this.handleStripeElementRef}
+                      hasCardError={hasCardError}
+                      error={this.state.error}
+                      intl={intl}
+                      marketplaceName={marketplaceName}
+                    />
+                  </React.Fragment>
+                )}
+
+                {showOnetimePaymentFields ? (
+                  <div className={css.billingDetails}>
+                    <Heading as="h3" rootClassName={css.heading}>
+                      <FormattedMessage id="StripePaymentForm.billingDetails" />
+                    </Heading>
+
+                    {askShippingDetails ? (
+                      <FieldCheckbox
+                        className={css.sameAddressCheckbox}
+                        textClassName={css.sameAddressLabel}
+                        id="sameAddressCheckbox"
+                        name="sameAddressCheckbox"
+                        label={intl.formatMessage({
+                          id: 'StripePaymentForm.sameBillingAndShippingAddress',
+                        })}
+                        value="sameAddress"
+                        useSuccessColor
+                        onChange={handleSameAddressCheckbox}
+                      />
+                    ) : null}
+
+                    <FieldTextInput
+                      className={css.field}
+                      type="text"
+                      id="name"
+                      name="name"
+                      autoComplete="cc-name"
+                      label={billingDetailsNameLabel}
+                      placeholder={billingDetailsNamePlaceholder}
+                    />
+
+                    {billingAddress}
+                  </div>
+                ) : null}
+              </React.Fragment>
+            ) : loadingData ? (
+              <p className={css.spinner}>
+                <IconSpinner />
+              </p>
             ) : null}
-          </React.Fragment>
-        ) : loadingData ? (
-          <p className={css.spinner}>
-            <IconSpinner />
-          </p>
-        ) : null}
+          </>
+        )}
 
         {initiateOrderError ? (
           <span className={css.errorMessage}>{initiateOrderError.message}</span>

@@ -1092,6 +1092,7 @@
   "StripePaymentForm.payWithHeading": "Payment",
   "StripePaymentForm.paymentCardDetails": "Payment card details",
   "StripePaymentForm.paymentHeading": "Payment",
+  "StripePaymentForm.paymentMethodTypeLabel": "Payment method",
   "StripePaymentForm.pickupDetailsTitle": "Pickup location",
   "StripePaymentForm.pickupLocationUnknown": "Pickup location not set. Contact provider.",
   "StripePaymentForm.replaceAfterOnetimePayment": "Replace card …{last4Digits} with the new card for future orders",

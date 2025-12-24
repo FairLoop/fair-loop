@@ -169,6 +169,30 @@ const persistTransaction = (order, pageData, storeData, setPageData, sessionStor
   }
 };
 
+export const getInitiateTransition = (
+  paymentMethodType,
+  lastTransition,
+  process,
+  isOfferPendingInNegotiation = false
+) => {
+  // Handle post-inquiry flow
+  if (lastTransition === process.transitions.INQUIRE) {
+    return paymentMethodType === 'ideal'
+      ? process.transitions.REQUEST_PUSH_PAYMENT_AFTER_INQUIRY
+      : process.transitions.REQUEST_PAYMENT_AFTER_INQUIRY;
+  }
+
+  // Handle negotiation flow
+  if (isOfferPendingInNegotiation) {
+    return process.transitions.REQUEST_PAYMENT_TO_ACCEPT_OFFER;
+  }
+
+  // Handle default flow
+  return paymentMethodType === 'ideal'
+    ? process.transitions.REQUEST_PUSH_PAYMENT
+    : process.transitions.REQUEST_PAYMENT;
+};
+
 /**
  * Create call sequence for checkout with Stripe PaymentIntents.
  *
@@ -195,12 +219,14 @@ export const processCheckoutWithPayment = (orderParams, extraPaymentParams) => {
     stripeCustomer,
     stripePaymentMethodId,
   } = extraPaymentParams;
+  const { paymentMethodTypes } = orderParams?.protectedData || [];
   const storedTx = ensureTransaction(pageData.transaction);
 
   const ensuredStripeCustomer = ensureStripeCustomer(stripeCustomer);
   const processAlias = pageData?.listing?.attributes?.publicData?.transactionProcessAlias;
 
   let createdPaymentIntent = null;
+  const isIdeal = paymentMethodTypes.includes('ideal');
 
   ////////////////////////////////////////////////
   // Step 1: initiate order                     //
@@ -214,12 +240,12 @@ export const processCheckoutWithPayment = (orderParams, extraPaymentParams) => {
       resolveLatestProcessName(processAlias.split('/')[0]) === NEGOTIATION_PROCESS_NAME &&
       storedTx.attributes.state === `state/${process.states.OFFER_PENDING}`;
 
-    const requestTransition =
-      storedTx?.attributes?.lastTransition === process.transitions.INQUIRE
-        ? process.transitions.REQUEST_PAYMENT_AFTER_INQUIRY
-        : isOfferPendingInNegotiationProcess
-        ? process.transitions.REQUEST_PAYMENT_TO_ACCEPT_OFFER
-        : process.transitions.REQUEST_PAYMENT;
+    const requestTransition = getInitiateTransition(
+      isIdeal ? 'ideal' : 'card',
+      storedTx?.attributes?.lastTransition,
+      process,
+      isOfferPendingInNegotiationProcess
+    );
     const isPrivileged = process.isPrivileged(requestTransition);
 
     // If paymentIntent exists, order has been initiated previously.
@@ -255,10 +281,19 @@ export const processCheckoutWithPayment = (orderParams, extraPaymentParams) => {
 
     const { stripe, card, billingDetails, paymentIntent } = extraPaymentParams;
     const stripeElementMaybe = !isPaymentFlowUseSavedCard ? { card } : {};
+    const redirectUrl = `${window.location.origin}/order/${order?.id.uuid}`;
 
     // Note: For basic USE_SAVED_CARD scenario, we have set it already on API side, when PaymentIntent was created.
     // However, the payment_method is save here for USE_SAVED_CARD flow if customer first attempted onetime payment
-    const paymentParams = !isPaymentFlowUseSavedCard
+    const paymentParams = isIdeal
+      ? {
+          payment_method: {
+            billing_details: billingDetails,
+            ideal: {}
+          },
+          return_url: redirectUrl,
+        }
+      : !isPaymentFlowUseSavedCard
       ? {
           payment_method: {
             billing_details: billingDetails,
@@ -273,6 +308,7 @@ export const processCheckoutWithPayment = (orderParams, extraPaymentParams) => {
       stripe,
       ...stripeElementMaybe,
       paymentParams,
+      mode: isIdeal ? 'ideal' : 'card',
     };
 
     return hasPaymentIntentUserActionsDone
@@ -341,13 +377,15 @@ export const processCheckoutWithPayment = (orderParams, extraPaymentParams) => {
   //   .then(result => fnConfirmPayment({...result}))
   const applyAsync = (acc, val) => acc.then(val);
   const composeAsync = (...funcs) => x => funcs.reduce(applyAsync, Promise.resolve(x));
-  const handlePaymentIntentCreation = composeAsync(
-    fnRequestPayment,
-    fnConfirmCardPayment,
-    fnConfirmPayment,
-    fnSendMessage,
-    fnSavePaymentMethod
-  );
+  const handlePaymentIntentCreation = isIdeal
+    ? composeAsync(fnRequestPayment, fnConfirmCardPayment)
+    : composeAsync(
+        fnRequestPayment,
+        fnConfirmCardPayment,
+        fnConfirmPayment,
+        fnSendMessage,
+        fnSavePaymentMethod
+      );
 
   return handlePaymentIntentCreation(orderParams);
 };

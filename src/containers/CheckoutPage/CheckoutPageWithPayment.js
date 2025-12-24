@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 // Import contexts and util modules
 import { FormattedMessage, intlShape } from '../../util/reactIntl';
@@ -24,6 +24,7 @@ import {
   bookingDatesMaybe,
   getBillingDetails,
   getFormattedTotalPrice,
+  getInitiateTransition,
   getShippingDetailsMaybe,
   getTransactionTypeData,
   hasDefaultPaymentMethod,
@@ -40,6 +41,7 @@ import MobileListingImage from './MobileListingImage';
 import MobileOrderBreakdown from './MobileOrderBreakdown';
 
 import css from './CheckoutPage.module.css';
+import { isPrivileged } from '../../transactions/transactionProcessPurchase.js';
 
 // Stripe PaymentIntent statuses, where user actions are already completed
 // https://stripe.com/docs/payments/payment-intents/status
@@ -116,14 +118,24 @@ const getOrderParams = (pageData, shippingDetails, optionalPaymentParams, config
   const priceVariant = priceVariants?.find(pv => pv.name === priceVariantName);
   const priceVariantMaybe = priceVariant ? prefixPriceVariantProperties(priceVariant) : {};
 
+  const isIdeal = pageData.paymentMethodType === 'ideal';
+  const paymentMethodTypesMaybe = isIdeal ? { paymentMethodTypes: ['ideal'] } : {};
+
   const protectedDataMaybe = {
     protectedData: {
       ...getTransactionTypeData(listingType, unitType, config),
       ...deliveryMethodMaybe,
       ...shippingDetails,
       ...priceVariantMaybe,
+      ...paymentMethodTypesMaybe,
     },
   };
+
+  const optionalPaymentParamsMaybe = !isIdeal
+    ? {
+        ...optionalPaymentParams,
+      }
+    : {};
 
   // Note: Avoid misinterpreting the following logic as allowing arbitrary mixing of `quantity` and `seats`.
   // You can only pass either quantity OR seats and units to the orderParams object
@@ -142,7 +154,7 @@ const getOrderParams = (pageData, shippingDetails, optionalPaymentParams, config
     ...bookingDatesMaybe(pageData.orderData?.bookingDates),
     ...priceVariantNameMaybe,
     ...protectedDataMaybe,
-    ...optionalPaymentParams,
+    ...optionalPaymentParamsMaybe,
   };
   return orderParams;
 };
@@ -165,18 +177,18 @@ const fetchSpeculatedTransactionIfNeeded = (orderParams, pageData, fetchSpeculat
   if (shouldFetchSpeculatedTransaction) {
     const processAlias = pageData.listing.attributes.publicData?.transactionProcessAlias;
     const transactionId = tx ? tx.id : null;
-    const isInquiryInPaymentProcess =
-      tx?.attributes?.lastTransition === process.transitions.INQUIRE;
     const resolvedProcessName = resolveLatestProcessName(processName);
     const isOfferPendingInNegotiationProcess =
       resolvedProcessName === NEGOTIATION_PROCESS_NAME &&
       tx.attributes.state === `state/${process.states.OFFER_PENDING}`;
 
-    const requestTransition = isInquiryInPaymentProcess
-      ? process.transitions.REQUEST_PAYMENT_AFTER_INQUIRY
-      : isOfferPendingInNegotiationProcess
-      ? process.transitions.REQUEST_PAYMENT_TO_ACCEPT_OFFER
-      : process.transitions.REQUEST_PAYMENT;
+    const requestTransition = getInitiateTransition(
+      orderParams?.paymentMethodType === 'ideal' ? 'ideal' : 'card',
+      tx?.attributes?.lastTransition,
+      process,
+      isOfferPendingInNegotiationProcess
+    );
+
     const isPrivileged = process.isPrivileged(requestTransition);
 
     fetchSpeculatedTransaction(
@@ -252,7 +264,7 @@ const handleSubmit = (values, process, props, stripe, submitting, setSubmitting)
     sessionStorageKey,
   } = props;
   const { card, message, paymentMethod: selectedPaymentMethod, formValues } = values;
-  const { saveAfterOnetimePayment: saveAfterOnetimePaymentRaw } = formValues;
+  const { saveAfterOnetimePayment: saveAfterOnetimePaymentRaw, paymentMethodType } = formValues;
 
   const saveAfterOnetimePayment =
     Array.isArray(saveAfterOnetimePaymentRaw) && saveAfterOnetimePaymentRaw.length > 0;
@@ -303,7 +315,12 @@ const handleSubmit = (values, process, props, stripe, submitting, setSubmitting)
 
   // These are the order parameters for the first payment-related transition
   // which is either initiate-transition or initiate-transition-after-enquiry
-  const orderParams = getOrderParams(pageData, shippingDetails, optionalPaymentParams, config);
+  const orderParams = getOrderParams(
+    { ...pageData, paymentMethodType },
+    shippingDetails,
+    optionalPaymentParams,
+    config
+  );
 
   // There are multiple XHR calls that needs to be made against Stripe API and Sharetribe Marketplace API on checkout with payments
   processCheckoutWithPayment(orderParams, requestPaymentParams)
@@ -396,6 +413,7 @@ export const CheckoutPageWithPayment = props => {
   const [submitting, setSubmitting] = useState(false);
   // Initialized stripe library is saved to state - if it's needed at some point here too.
   const [stripe, setStripe] = useState(null);
+  const [selectedPaymentMethodType, setSelectedPaymentMethodType] = useState('ideal');
 
   const {
     scrollingDisabled,
@@ -431,6 +449,10 @@ export const CheckoutPageWithPayment = props => {
   const { listing, transaction, orderData } = pageData;
   const existingTransaction = ensureTransaction(transaction);
   const speculatedTransaction = ensureTransaction(speculatedTransactionMaybe, {}, null);
+
+  const alreadyRequestPayment = existingTransaction?.attributes?.transitions?.some(tr =>
+    isPrivileged(tr.transition)
+  );
 
   // If existing transaction has line-items, it has gone through one of the request-payment transitions.
   // Otherwise, we try to rely on speculatedTransaction for order breakdown data.
@@ -516,8 +538,14 @@ export const CheckoutPageWithPayment = props => {
 
   // If your marketplace works mostly in one country you can use initial values to select country automatically
   // e.g. {country: 'FI'}
+  const defaultPaymentMethodType =
+    existingTransaction?.attributes?.protectedData?.paymentMethodTypes || [];
 
-  const initialValuesForStripePayment = { name: userName, recipientName: userName };
+  const initialValuesForStripePayment = {
+    name: userName,
+    recipientName: userName,
+    paymentMethodType: defaultPaymentMethodType[0] || selectedPaymentMethodType,
+  };
   const askShippingDetails =
     orderData?.deliveryMethod === 'shipping' &&
     !hasTransactionPassedPendingPayment(existingTransaction, process);
@@ -627,6 +655,8 @@ export const CheckoutPageWithPayment = props => {
                 marketplaceName={config.marketplaceName}
                 isBooking={isBookingProcessAlias(transactionProcessAlias)}
                 isFuzzyLocation={config.maps.fuzzy.enabled}
+                disablePaymentMethodTypeChange={!!alreadyRequestPayment}
+                onSelectPaymentMethodType={setSelectedPaymentMethodType}
               />
             ) : null}
           </section>

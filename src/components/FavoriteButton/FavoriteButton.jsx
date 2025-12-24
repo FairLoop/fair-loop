@@ -74,7 +74,6 @@ const FavoriteButton = props => {
     return null;
   }
 
-  console.log('yolooo');
   return (
     <div
       className={classes}

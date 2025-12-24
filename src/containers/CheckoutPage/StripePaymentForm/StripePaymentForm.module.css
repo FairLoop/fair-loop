@@ -156,3 +156,60 @@
 .missingStripeKey {
   color: var(--colorFail);
 }
+
+.paymentMethodTypeSection {
+  margin-bottom: 32px;
+
+  @media (--viewportMedium) {
+    margin-bottom: 40px;
+  }
+}
+
+.paymentMethodOptions {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.paymentMethodOption {
+  flex: 1;
+  padding: 8px 12px;
+  border: 5px solid var(--colorGrey100);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+
+  @media (--viewportMedium) {
+    padding: 10px 16px;
+  }
+}
+
+.paymentMethodIcon {
+  width: 50px;
+  height: auto;
+  object-fit: contain;
+
+  @media (--viewportMedium) {
+    width: 60px;
+  }
+}
+
+.paymentMethodOptionSelected {
+  border-color: var(--marketplaceColor);
+  font-weight: var(--fontWeightSemiBold);
+
+  &:hover {
+    border-color: var(--marketplaceColor);
+  }
+}
+
+.paymentMethodOptionText {
+  composes: h4 from global;
+  margin: 0;
+  color: var(--colorGrey700);
+}

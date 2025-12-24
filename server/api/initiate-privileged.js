@@ -84,6 +84,9 @@ module.exports = (req, res) => {
           ...params,
           lineItems,
           ...metadataMaybe,
+          ...(params.protectedData?.paymentMethodTypes
+            ? { paymentMethodTypes: params.protectedData.paymentMethodTypes }
+            : {}),
         },
       };
 
