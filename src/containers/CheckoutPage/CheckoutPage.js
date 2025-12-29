@@ -224,7 +224,12 @@ const mapStateToProps = state => {
     confirmPaymentError,
   } = state.CheckoutPage;
   const { currentUser } = state.user;
-  const { confirmCardPaymentError, paymentIntent, retrievePaymentIntentError } = state.stripe;
+  const {
+    confirmCardPaymentError,
+    paymentIntent,
+    retrievePaymentIntentError,
+    confirmCardPaymentInProgress,
+  } = state.stripe;
   return {
     scrollingDisabled: isScrollingDisabled(state),
     currentUser,
@@ -242,6 +247,7 @@ const mapStateToProps = state => {
     confirmPaymentError,
     paymentIntent,
     retrievePaymentIntentError,
+    confirmCardPaymentInProgress,
   };
 };
 

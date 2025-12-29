@@ -27,6 +27,29 @@ import ShippingDetails from '../ShippingDetails/ShippingDetails';
 import css from './StripePaymentForm.module.css';
 import cardImage from './card.png';
 import idealImage from './ideal.png';
+import klarnaImage from './klarna.png';
+
+// Payment method configuration
+const PAYMENT_METHODS = [
+  {
+    type: 'ideal',
+    label: 'iDeal',
+    image: idealImage,
+    requiresPaymentMethodChange: true,
+  },
+  {
+    type: 'klarna',
+    label: 'Klarna',
+    image: klarnaImage,
+    requiresPaymentMethodChange: true,
+  },
+  {
+    type: 'card',
+    label: 'Card',
+    image: cardImage,
+    requiresPaymentMethodChange: false,
+  },
+];
 
 /**
  * Translate a Stripe API error object.
@@ -306,6 +329,7 @@ class StripePaymentForm extends Component {
     this.initializeStripeElement = this.initializeStripeElement.bind(this);
     this.handleStripeElementRef = this.handleStripeElementRef.bind(this);
     this.changePaymentMethod = this.changePaymentMethod.bind(this);
+    this.handlePaymentMethodSelection = this.handlePaymentMethodSelection.bind(this);
     this.finalFormAPI = null;
     this.cardContainer = null;
   }
@@ -377,14 +401,15 @@ class StripePaymentForm extends Component {
   }
 
   changePaymentMethod(changedTo) {
-    if (this.card && (changedTo === 'defaultCard' || changedTo === 'ideal')) {
+    const isPushPayment = changedTo === 'ideal' || changedTo === 'klarna';
+    if (this.card && (changedTo === 'defaultCard' || isPushPayment)) {
       this.card.removeEventListener('change', this.handleCardValueChange);
       this.card.unmount();
       this.card = null;
       this.setState({ cardValueValid: false });
     }
 
-    if (changedTo !== 'ideal') {
+    if (!isPushPayment) {
       this.setState({ paymentMethod: changedTo });
     }
     if (changedTo === 'defaultCard' && this.finalFormAPI) {
@@ -392,6 +417,14 @@ class StripePaymentForm extends Component {
     } else if (changedTo === 'replaceCard' && this.finalFormAPI) {
       this.finalFormAPI.change('sameAddressCheckbox', ['sameAddress']);
       this.updateBillingDetailsToMatchShippingAddress(true);
+    }
+  }
+
+  handlePaymentMethodSelection(method, formApi) {
+    formApi.change('paymentMethodType', method.type);
+    formApi.change('sameAddressCheckbox', undefined);
+    if (method.requiresPaymentMethodChange) {
+      this.changePaymentMethod(method.type);
     }
   }
 
@@ -495,6 +528,8 @@ class StripePaymentForm extends Component {
     const { cardValueValid, paymentMethod } = this.state;
     const { paymentMethodType } = values;
     const isIdeal = paymentMethodType === 'ideal';
+    const isKlarna = paymentMethodType === 'klarna';
+    const isPushPayment = isIdeal || isKlarna;
     const hasDefaultPaymentMethod = ensuredDefaultPaymentMethod.id;
     const selectedPaymentMethod = getPaymentMethod(paymentMethod, hasDefaultPaymentMethod);
     const { onetimePaymentNeedsAttention, showOnetimePaymentFields } = checkOnetimePaymentFields(
@@ -505,7 +540,7 @@ class StripePaymentForm extends Component {
     );
 
     const submitDisabled =
-      invalid || (!isIdeal && onetimePaymentNeedsAttention) || submitInProgress;
+      invalid || (!isPushPayment && onetimePaymentNeedsAttention) || submitInProgress;
     const hasCardError = this.state.error && !submitInProgress;
     const hasPaymentErrors = confirmCardPaymentError || confirmPaymentError;
     const classes = classNames(rootClassName || css.root, className);
@@ -592,40 +627,38 @@ class StripePaymentForm extends Component {
               <FormattedMessage id="StripePaymentForm.paymentMethodTypeLabel" />
             </Heading>
             <div className={css.paymentMethodOptions}>
-              <div
-                className={classNames(css.paymentMethodOption, {
-                  [css.paymentMethodOptionSelected]: paymentMethodType === 'ideal',
-                })}
-                onClick={() => {
-                  formApi.change('paymentMethodType', 'ideal');
-                  formApi.change('sameAddressCheckbox', undefined);
-                  this.changePaymentMethod('ideal');
-                }}
-                role="button"
-                tabIndex={0}
-              >
-                <img src={idealImage} alt="iDeal" className={css.paymentMethodIcon} />
-                <span className={css.paymentMethodOptionText}>iDeal</span>
-              </div>
-              <div
-                className={classNames(css.paymentMethodOption, {
-                  [css.paymentMethodOptionSelected]: paymentMethodType !== 'ideal',
-                })}
-                onClick={() => {
-                  formApi.change('paymentMethodType', 'card');
-                  formApi.change('sameAddressCheckbox', undefined);
-                }}
-                role="button"
-                tabIndex={0}
-              >
-                <img src={cardImage} alt="Card" className={css.paymentMethodIcon} />
-                <span className={css.paymentMethodOptionText}>Card</span>
-              </div>
+              {PAYMENT_METHODS.map(method => {
+                const isSelected = paymentMethodType === method.type;
+                const handleSelect = () => this.handlePaymentMethodSelection(method, formApi);
+                const handleKeyDown = e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleSelect();
+                  }
+                };
+
+                return (
+                  <div
+                    key={method.type}
+                    className={classNames(css.paymentMethodOption, {
+                      [css.paymentMethodOptionSelected]: isSelected,
+                    })}
+                    onClick={handleSelect}
+                    onKeyDown={handleKeyDown}
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={isSelected}
+                  >
+                    <img src={method.image} alt={method.label} className={css.paymentMethodIcon} />
+                    <span className={css.paymentMethodOptionText}>{method.label}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
 
-        {!isIdeal && (
+        {!isPushPayment && (
           <>
             {billingDetailsNeeded && !loadingData ? (
               <React.Fragment>
@@ -705,7 +738,7 @@ class StripePaymentForm extends Component {
         {initiateOrderError ? (
           <span className={css.errorMessage}>{initiateOrderError.message}</span>
         ) : null}
-        {showInitialMessageInput ? (
+        {showInitialMessageInput && !isPushPayment ? (
           <div>
             <Heading as="h3" rootClassName={css.heading}>
               <FormattedMessage id="StripePaymentForm.messageHeading" />

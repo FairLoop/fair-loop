@@ -170,14 +170,14 @@ const persistTransaction = (order, pageData, storeData, setPageData, sessionStor
 };
 
 export const getInitiateTransition = (
-  paymentMethodType,
+  isPushPayment,
   lastTransition,
   process,
   isOfferPendingInNegotiation = false
 ) => {
   // Handle post-inquiry flow
   if (lastTransition === process.transitions.INQUIRE) {
-    return paymentMethodType === 'ideal'
+    return isPushPayment
       ? process.transitions.REQUEST_PUSH_PAYMENT_AFTER_INQUIRY
       : process.transitions.REQUEST_PAYMENT_AFTER_INQUIRY;
   }
@@ -188,7 +188,7 @@ export const getInitiateTransition = (
   }
 
   // Handle default flow
-  return paymentMethodType === 'ideal'
+  return isPushPayment
     ? process.transitions.REQUEST_PUSH_PAYMENT
     : process.transitions.REQUEST_PAYMENT;
 };
@@ -227,6 +227,8 @@ export const processCheckoutWithPayment = (orderParams, extraPaymentParams) => {
 
   let createdPaymentIntent = null;
   const isIdeal = paymentMethodTypes.includes('ideal');
+  const isKlarna = paymentMethodTypes.includes('klarna');
+  const isPushPayment = isIdeal || isKlarna;
 
   ////////////////////////////////////////////////
   // Step 1: initiate order                     //
@@ -241,7 +243,7 @@ export const processCheckoutWithPayment = (orderParams, extraPaymentParams) => {
       storedTx.attributes.state === `state/${process.states.OFFER_PENDING}`;
 
     const requestTransition = getInitiateTransition(
-      isIdeal ? 'ideal' : 'card',
+      isPushPayment,
       storedTx?.attributes?.lastTransition,
       process,
       isOfferPendingInNegotiationProcess
@@ -285,11 +287,11 @@ export const processCheckoutWithPayment = (orderParams, extraPaymentParams) => {
 
     // Note: For basic USE_SAVED_CARD scenario, we have set it already on API side, when PaymentIntent was created.
     // However, the payment_method is save here for USE_SAVED_CARD flow if customer first attempted onetime payment
-    const paymentParams = isIdeal
+    const paymentParams = isPushPayment
       ? {
           payment_method: {
             billing_details: billingDetails,
-            ideal: {}
+            ...(isIdeal ? { ideal: {} } : {}),
           },
           return_url: redirectUrl,
         }
@@ -308,7 +310,7 @@ export const processCheckoutWithPayment = (orderParams, extraPaymentParams) => {
       stripe,
       ...stripeElementMaybe,
       paymentParams,
-      mode: isIdeal ? 'ideal' : 'card',
+      mode: isIdeal ? 'ideal' : isKlarna ? 'klarna' : 'card',
     };
 
     return hasPaymentIntentUserActionsDone

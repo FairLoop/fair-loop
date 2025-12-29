@@ -62,6 +62,7 @@ const confirmCardPaymentPayloadCreator = (params, { rejectWithValue }) => {
   const { stripe, paymentParams, stripePaymentIntentClientSecret, mode = 'card' } = params;
   const transactionId = params.orderId;
   const isIdeal = mode === 'ideal';
+  const isKlarna = mode === 'klarna';
 
   // When using default payment method paymentParams.payment_method is
   // already set Marketplace API side, when request-payment transition is made
@@ -74,6 +75,8 @@ const confirmCardPaymentPayloadCreator = (params, { rejectWithValue }) => {
     let stripeFn = stripe.confirmCardPayment;
     if (isIdeal) {
       stripeFn = stripe.confirmIdealPayment;
+    } else if (isKlarna) {
+      stripeFn = stripe.confirmKlarnaPayment;
     }
 
     return stripeFn(...args).then(response => {

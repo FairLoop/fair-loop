@@ -119,7 +119,13 @@ const getOrderParams = (pageData, shippingDetails, optionalPaymentParams, config
   const priceVariantMaybe = priceVariant ? prefixPriceVariantProperties(priceVariant) : {};
 
   const isIdeal = pageData.paymentMethodType === 'ideal';
-  const paymentMethodTypesMaybe = isIdeal ? { paymentMethodTypes: ['ideal'] } : {};
+  const isKlarna = pageData.paymentMethodType === 'klarna';
+  const isCard = !isIdeal && !isKlarna;
+  const paymentMethodTypesMaybe = isIdeal
+    ? { paymentMethodTypes: ['ideal'] }
+    : isKlarna
+    ? { paymentMethodTypes: ['klarna'] }
+    : {};
 
   const protectedDataMaybe = {
     protectedData: {
@@ -131,7 +137,7 @@ const getOrderParams = (pageData, shippingDetails, optionalPaymentParams, config
     },
   };
 
-  const optionalPaymentParamsMaybe = !isIdeal
+  const optionalPaymentParamsMaybe = isCard
     ? {
         ...optionalPaymentParams,
       }
@@ -183,7 +189,7 @@ const fetchSpeculatedTransactionIfNeeded = (orderParams, pageData, fetchSpeculat
       tx.attributes.state === `state/${process.states.OFFER_PENDING}`;
 
     const requestTransition = getInitiateTransition(
-      orderParams?.paymentMethodType === 'ideal' ? 'ideal' : 'card',
+      orderParams?.paymentMethodType === 'ideal' || orderParams?.paymentMethodType === 'klarna',
       tx?.attributes?.lastTransition,
       process,
       isOfferPendingInNegotiationProcess
@@ -434,6 +440,7 @@ export const CheckoutPageWithPayment = props => {
     listingTitle,
     title,
     config,
+    confirmCardPaymentInProgress,
   } = props;
 
   // Since the listing data is already given from the ListingPage
@@ -655,7 +662,9 @@ export const CheckoutPageWithPayment = props => {
                 marketplaceName={config.marketplaceName}
                 isBooking={isBookingProcessAlias(transactionProcessAlias)}
                 isFuzzyLocation={config.maps.fuzzy.enabled}
-                disablePaymentMethodTypeChange={!!alreadyRequestPayment}
+                disablePaymentMethodTypeChange={
+                  !!alreadyRequestPayment && !confirmCardPaymentInProgress
+                }
                 onSelectPaymentMethodType={setSelectedPaymentMethodType}
               />
             ) : null}

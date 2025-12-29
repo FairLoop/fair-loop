@@ -1,6 +1,6 @@
 const { getIntegrationSdk } = require('../../api-util/sdk');
 
-const paymentMethodsAvailable = ['ideal'];
+const paymentMethodsAvailable = ['ideal', 'klarna'];
 
 const confirmPaymentTransition = async data => {
   try {

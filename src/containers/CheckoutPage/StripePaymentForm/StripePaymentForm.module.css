@@ -166,14 +166,20 @@
 }
 
 .paymentMethodOptions {
-  display: flex;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
   margin-top: 16px;
+
+  @media (--viewportMedium) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
 }
 
 .paymentMethodOption {
-  flex: 1;
-  padding: 8px 12px;
+  /* Mobile first: smaller padding and gap */
+  padding: 6px 8px;
   border: 5px solid var(--colorGrey100);
   border-radius: 8px;
   cursor: pointer;
@@ -182,20 +188,28 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
 
+  &:hover {
+    border-color: var(--colorGrey300);
+  }
+
+  /* Desktop: more spacious */
   @media (--viewportMedium) {
-    padding: 10px 16px;
+    padding: 12px 16px;
+    gap: 12px;
   }
 }
 
 .paymentMethodIcon {
-  width: 50px;
+  /* Mobile: smaller icons */
+  width: 32px;
   height: auto;
   object-fit: contain;
 
+  /* Desktop: larger icons */
   @media (--viewportMedium) {
-    width: 60px;
+    width: 48px;
   }
 }
 
@@ -212,4 +226,10 @@
   composes: h4 from global;
   margin: 0;
   color: var(--colorGrey700);
+  font-size: 14px;
+
+  /* Desktop: larger text */
+  @media (--viewportMedium) {
+    font-size: 21px;
+  }
 }
