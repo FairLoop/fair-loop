@@ -19,6 +19,7 @@ import TopbarSearchForm from '../TopbarSearchForm/TopbarSearchForm';
 import CustomLinksMenu from './CustomLinksMenu/CustomLinksMenu';
 
 import css from './TopbarDesktop.module.css';
+import LanguageSwitcher from './LanguageSwitcher/LanguageSwitcher';
 
 const SignupLink = () => {
   return (
@@ -210,6 +211,8 @@ const TopbarDesktop = props => {
         hasClientSideContentReady={authenticatedOnClientSide || !isAuthenticatedOrJustHydrated}
         showCreateListingsLink={showCreateListingsLink}
       />
+
+      <LanguageSwitcher />
 
       <NamedLink
         name="FavoriteListingsPage"
