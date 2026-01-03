@@ -60,17 +60,22 @@ export const FieldAddImage = props => {
       {fieldprops => {
         const { accept, input, label, disabled: fieldDisabled } = fieldprops;
         const { name, type } = input;
-        const onChange = e => {
-          const file = e.target.files[0];
-          formApi.change(`addImage`, file);
-          formApi.blur(`addImage`);
-          onImageUploadHandler(file);
+        const onChange = async e => {
+          const files = e.target.files[0];
+          for (let i = 0; i < files.length; i++) {
+            const img = files[i];
+            formApi.change(`addImage`, img);
+            formApi.blur(`addImage`);
+            await onImageUploadHandler(img);
+          }
         };
         const inputProps = { accept, id: name, name, onChange, type };
         return (
           <div className={css.addImageWrapper}>
             <AspectRatioWrapper width={aspectWidth} height={aspectHeight}>
-              {fieldDisabled ? null : <input {...inputProps} className={css.addImageInput} />}
+              {fieldDisabled ? null : (
+                <input {...inputProps} className={css.addImageInput} multiple />
+              )}
               <label htmlFor={name} className={css.addImage}>
                 {label}
               </label>
@@ -144,7 +149,7 @@ export const EditListingPhotosForm = props => {
     if (file) {
       setState({ imageUploadRequested: true });
 
-      onImageUpload({ id: `${file.name}_${Date.now()}`, file }, listingImageConfig)
+      return onImageUpload({ id: `${file.name}_${Date.now()}`, file }, listingImageConfig)
         .then(() => {
           setState({ imageUploadRequested: false });
         })
