@@ -17,6 +17,21 @@ export const LANGUAGES = [
     label: 'Nederlands',
     flag: '🇳🇱',
   },
+  {
+    code: 'de',
+    label: 'German',
+    flag: '🇩🇪',
+  },
+  {
+    code: 'fr',
+    label: 'French',
+    flag: '🇫🇷',
+  },
+  {
+    code: 'es',
+    label: 'Spanish',
+    flag: '🇪🇸',
+  },
 ];
 
 export const DEFAULT_LANGUAGE = 'en';

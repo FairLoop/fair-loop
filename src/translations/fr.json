@@ -1395,5 +1395,11 @@
   "UserNav.accountSettings": "Réglages",
   "UserNav.profileSettings": "Profil",
   "UserNav.screenreader.userNav": "Aller au profile d'utilisateur",
-  "UserNav.yourListings": "Mes annonces"
+  "UserNav.yourListings": "Mes annonces",
+  "TopbarMobileMenu.favoritesLink": "Favoris",
+  "FavoriteListingsPage.loadingFavoriteListings": "Chargement des favoris...",
+  "FavoriteListingsPage.noResults": "Vous n'avez rien ajouté aux favoris.",
+  "FavoriteListingsPage.queryError": "La requête a échoué. Veuillez réessayer.",
+  "FavoriteListingsPage.title": "Voir vos annonces favorites",
+  "FavoriteListingsPage.youHaveListings": "Vous avez {count} {count, plural, one {annonce favorite} other {annonces favorites}}"
 }

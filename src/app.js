@@ -31,6 +31,9 @@ import Routes from './routing/Routes';
 // Sharetribe Web Template uses English translations as default translations.
 import defaultMessages from './translations/en.json';
 import dutchMessages from './translations/nl.json';
+import germanMessages from './translations/de.json';
+import frenchMessages from './translations/fr.json';
+import spanishMessages from './translations/es.json';
 
 export const LANGUAGE_STORAGE_KEY = 'fairLoop_language';
 
@@ -38,7 +41,7 @@ export const LANGUAGE_STORAGE_KEY = 'fairLoop_language';
 export const getUserLanguage = () => {
   if (typeof window !== 'undefined') {
     const savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    if (savedLanguage && ['en', 'nl'].includes(savedLanguage)) {
+    if (savedLanguage && ['en', 'nl', 'de', 'fr', 'es'].includes(savedLanguage)) {
       return savedLanguage;
     }
   }
@@ -50,6 +53,12 @@ const getMessagesForLanguage = lang => {
   switch (lang) {
     case 'nl':
       return dutchMessages;
+    case 'de':
+      return germanMessages;
+    case 'fr':
+      return frenchMessages;
+    case 'es':
+      return spanishMessages;
     case 'en':
     default:
       return {};

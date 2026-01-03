@@ -1395,5 +1395,11 @@
   "UserNav.accountSettings": "Kontoeinstellungen",
   "UserNav.profileSettings": "Profileinstellungen",
   "UserNav.screenreader.userNav": "Navigation zum Benutzerprofil",
-  "UserNav.yourListings": "Deine Einträge"
+  "UserNav.yourListings": "Deine Einträge",
+  "TopbarMobileMenu.favoritesLink": "Favoriten",
+  "FavoriteListingsPage.loadingFavoriteListings": "Favoriten werden geladen...",
+  "FavoriteListingsPage.noResults": "Sie haben noch nichts zu den Favoriten hinzugefügt.",
+  "FavoriteListingsPage.queryError": "Abfrage fehlgeschlagen. Bitte versuchen Sie es erneut.",
+  "FavoriteListingsPage.title": "Ihre Lieblings-Anzeigen ansehen",
+  "FavoriteListingsPage.youHaveListings": "Sie haben {count} {count, plural, one {Lieblings-Anzeige} other {Lieblings-Anzeigen}}"
 }

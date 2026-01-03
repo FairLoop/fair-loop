@@ -1394,5 +1394,11 @@
   "UserNav.accountSettings": "Configuración de la cuenta",
   "UserNav.profileSettings": "Configuración de perfil",
   "UserNav.screenreader.userNav": "Navegación de perfil de usuario",
-  "UserNav.yourListings": "Tus anuncios"
+  "UserNav.yourListings": "Tus anuncios",
+  "TopbarMobileMenu.favoritesLink": "Favoritos",
+  "FavoriteListingsPage.loadingFavoriteListings": "Cargando favoritos...",
+  "FavoriteListingsPage.noResults": "No has añadido nada a favoritos.",
+  "FavoriteListingsPage.queryError": "La consulta falló. Por favor, inténtalo de nuevo.",
+  "FavoriteListingsPage.title": "Ver tus anuncios favoritos",
+  "FavoriteListingsPage.youHaveListings": "Tienes {count} {count, plural, one {anuncio favorito} other {anuncios favoritos}}"
 }
