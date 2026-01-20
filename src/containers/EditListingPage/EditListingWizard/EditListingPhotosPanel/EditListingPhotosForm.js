@@ -61,7 +61,7 @@ export const FieldAddImage = props => {
         const { accept, input, label, disabled: fieldDisabled } = fieldprops;
         const { name, type } = input;
         const onChange = async e => {
-          const files = e.target.files[0];
+          const files = e.target.files;
           for (let i = 0; i < files.length; i++) {
             const img = files[i];
             formApi.change(`addImage`, img);
