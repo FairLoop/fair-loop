@@ -67,9 +67,8 @@ const RedirectToLandingPage = () => <NamedRedirect name="LandingPage" />;
 // Our routes are exact by default.
 // See behaviour from Routes.js where Route is created.
 const routeConfiguration = (layoutConfig, accessControlConfig) => {
-  const SearchPage = layoutConfig.searchPage?.variantType === 'map' 
-    ? SearchPageWithMap 
-    : SearchPageWithGrid;
+  const isSearchPageWithMap = layoutConfig.searchPage?.variantType === 'map';
+  const SearchPage = isSearchPageWithMap ? SearchPageWithMap : SearchPageWithGrid;
   const ListingPage = layoutConfig.listingPage?.variantType === 'carousel' 
     ? ListingPageCarousel 
     : ListingPageCoverPhoto;
@@ -106,6 +105,7 @@ const routeConfiguration = (layoutConfig, accessControlConfig) => {
       ...authForPrivateMarketplace,
       component: SearchPage,
       loadData: pageDataLoadingAPI.SearchPage.loadData,
+      prioritizeMapLibraryLoading: isSearchPageWithMap,
     },
     {
       path: '/s/:listingType',
@@ -113,6 +113,7 @@ const routeConfiguration = (layoutConfig, accessControlConfig) => {
       ...authForPrivateMarketplace,
       component: SearchPage,
       loadData: pageDataLoadingAPI.SearchPage.loadData,
+      prioritizeMapLibraryLoading: isSearchPageWithMap,
     },
     {
       path: '/l',
@@ -125,6 +126,7 @@ const routeConfiguration = (layoutConfig, accessControlConfig) => {
       ...authForPrivateMarketplace,
       component: ListingPage,
       loadData: pageDataLoadingAPI.ListingPage.loadData,
+      prioritizeMapLibraryLoading: true,
     },
     {
       path: '/l/:slug/:id/make-offer',
@@ -155,6 +157,7 @@ const routeConfiguration = (layoutConfig, accessControlConfig) => {
       authPage: 'LoginPage',
       component: ListingPage,
       loadData: pageDataLoadingAPI.ListingPage.loadData,
+      prioritizeMapLibraryLoading: true,
     },
     {
       path: '/l/new',
@@ -190,6 +193,7 @@ const routeConfiguration = (layoutConfig, accessControlConfig) => {
       ...authForPrivateMarketplace,
       component: ListingPage,
       loadData: pageDataLoadingAPI.ListingPage.loadData,
+      prioritizeMapLibraryLoading: true,
     },
     {
       path: '/u',

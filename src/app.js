@@ -1,12 +1,8 @@
 import React from 'react';
-import { any, string } from 'prop-types';
-
 import { HelmetProvider } from 'react-helmet-async';
 import { BrowserRouter, StaticRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import loadable from '@loadable/component';
-import difference from 'lodash/difference';
-import mapValues from 'lodash/mapValues';
 import moment from 'moment';
 
 // Configs and store setup
@@ -17,6 +13,7 @@ import configureStore from './store';
 // utils
 import { RouteConfigurationProvider } from './context/routeConfigurationContext';
 import { ConfigurationProvider } from './context/configurationContext';
+import { difference } from './util/common';
 import { mergeConfig } from './util/configHelpers';
 import { IntlProvider } from './util/reactIntl';
 import { includeCSSProperties } from './util/style';
@@ -133,7 +130,7 @@ const addMissingTranslations = (sourceLangTranslations, targetLangTranslations) 
 //       { 'My.translationKey1': 'My.translationKey1', 'My.translationKey2': 'My.translationKey2' }
 const isTestEnv = process.env.NODE_ENV === 'test';
 const localeMessages = isTestEnv
-  ? mapValues(defaultMessages, (val, key) => key)
+  ? Object.fromEntries(Object.entries(defaultMessages).map(([key]) => [key, key]))
   : addMissingTranslations(defaultMessages, messagesInLocale);
 
 // For customized apps, this dynamic loading of locale files is not necessary.
@@ -293,7 +290,7 @@ export const ClientApp = props => {
       >
         <Provider store={store}>
           <HelmetProvider>
-            <IncludeScripts config={appConfig} />
+            <IncludeScripts config={appConfig} initialPathname={window.location.pathname} />
             <BrowserRouter>
               <Routes logLoadDataCalls={logLoadDataCalls} />
             </BrowserRouter>
@@ -340,7 +337,7 @@ export const ServerApp = props => {
       >
         <Provider store={store}>
           <HelmetProvider context={helmetContext}>
-            <IncludeScripts config={appConfig} />
+            <IncludeScripts config={appConfig} initialPathname={url} />
             <StaticRouter location={url} context={context}>
               <Routes />
             </StaticRouter>

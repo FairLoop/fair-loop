@@ -12,10 +12,99 @@ way to update this template, but currently, we follow a pattern:
 
 ---
 
-## Upcoming version 2025-XX-XX
+## Upcoming version 2026-XX-XX
 
+- [fix] ListingPage.duck.js: fix a bug where inquiry is not allowed for customer role on OFFER flow.
+  [#768](https://github.com/sharetribe/web-template/pull/768)
+- [fix] EditListingPage.duck.js: fix a bug where exception cache was not updated correctly.
+  [#766](https://github.com/sharetribe/web-template/pull/766)
+
+## [v10.10.1] 2026-02-04
+
+- [fix] SearchMapWithMapbox: fix a bug with info card marker container not being removed correctly.
+  [#763](https://github.com/sharetribe/web-template/pull/763)
+
+  [v10.10.1]: https://github.com/sharetribe/web-template/compare/v10.10.0...v10.10.1
+
+## [v10.10.0] 2026-02-03
+
+- [change] Improve map library loading strategy.
+  [#733](https://github.com/sharetribe/web-template/pull/733)
+- [fix] FilterDateRange: fix a bug with browser autoscrolling the dropdown too much.
+  [#761](https://github.com/sharetribe/web-template/pull/761)
+- [change] Update an Email text in the default-purchase transaction process
+  [#758](https://github.com/sharetribe/web-template/pull/758)
+- [fix] errors.js: fix a bug with error status checking.
+  [#756](https://github.com/sharetribe/web-template/pull/756)
+- [change] Remove or rewrite some lodash functions that could be achieved with native JavaScript.
+  [#755](https://github.com/sharetribe/web-template/pull/755)
+- [add] Update several dependencies. Including Express, body-parser, and
+  @testing-library/user-event. These might cause rewrites to some files in your project.
+  [#754](https://github.com/sharetribe/web-template/pull/754)
+- [add] Add currently available translations for DE, ES, FR.
+  [#753](https://github.com/sharetribe/web-template/pull/753)
+
+  [v10.10.0]: https://github.com/sharetribe/web-template/compare/v10.9.0...v10.10.0
+
+## [v10.9.0] 2026-01-26
+
+- [add] Add support for provider-driven negotiation loop ("Update offer" loop). With this loop, the
+  provider can update the offer they made on default-negotiation process.
+  [#735](https://github.com/sharetribe/web-template/pull/735)
+
+[v10.9.0]: https://github.com/sharetribe/web-template/compare/v10.8.1...v10.9.0
+
+## [v10.8.1] 2026-01-21
+
+- [fix] EditListingDetailsPanel: fix a bug with preselected listing type not being set correctly.
+  [#750](https://github.com/sharetribe/web-template/pull/750)
+
+  [v10.8.1]: https://github.com/sharetribe/web-template/compare/v10.8.0...v10.8.1
+
+## [v10.8.0] 2026-01-20
+
+- [fix] Menu: fix a bug with focus handling on iOS Safari.
+  [#747](https://github.com/sharetribe/web-template/pull/747)
+- [add] EditListingDetailsPanel: add support for preselected listing type through URLSearchParam:
+  listingType. [#748](https://github.com/sharetribe/web-template/pull/748)
+- [fix] Fix incorrect translation keys in default-negotiation transaction process
+  [#746](https://github.com/sharetribe/web-template/pull/746)
+- [fix] MakeOfferPage.duck.js and RequestQuotePage.duck.js: fix a bug with listingId fetching.
+  [#743](https://github.com/sharetribe/web-template/pull/743)
+- [add] Add currently available translations for DE, ES, FR.
+  [#745](https://github.com/sharetribe/web-template/pull/745)
+- [change] Update React Redux from v8.1.2 to v9.2.0 and Redux Toolkit from v2.9.0 to v2.11.2.
+  [#742](https://github.com/sharetribe/web-template/pull/742)
+
+  [v10.8.0]: https://github.com/sharetribe/web-template/compare/v10.7.0...v10.8.0
+
+## [v10.7.0] 2026-01-15
+
+- [add] Accessibility improvements. The focus is on keyboard navigation and focus handling.
+  [#723](https://github.com/sharetribe/web-template/pull/723)
+- [change] Update mapbox-sdk-js from v0.16.1 to v0.16.2 and add a long cache-control header for it.
+  [#741](https://github.com/sharetribe/web-template/pull/741)
+- [add] Fix an email template subject [#740](https://github.com/sharetribe/web-template/pull/740)
+- [add] Update a Marketplace text [#738](https://github.com/sharetribe/web-template/pull/738)
+
+  [v10.7.0]: https://github.com/sharetribe/web-template/compare/v10.6.0...v10.7.0
+
+## [v10.6.0] 2026-01-12
+
+- [fix] InboxPage: fix booking end time calculation for fixed booking type to use inclusive end
+  time. [#736](https://github.com/sharetribe/web-template/pull/736)
+- [remove] Bulgaria joined to Eurozone, so we removed BGN currency from the Stripe supported
+  currencies. [#734](https://github.com/sharetribe/web-template/pull/734)
+- [add] Improve banned and deleted user handling on Transaction Page
+  [729](https://github.com/sharetribe/web-template/pull/729)
+- [change] Add cache-control header with 1 year cache for generated main & chunck files.
+  [#727](https://github.com/sharetribe/web-template/pull/727)
+- [add] Add currently available translations for ES.
+  [#731](https://github.com/sharetribe/web-template/pull/731)
 - [add] Add currently available translations for DE, FR.
   [#730](https://github.com/sharetribe/web-template/pull/730)
+
+  [v10.6.0]: https://github.com/sharetribe/web-template/compare/v10.5.0...v10.6.0
 
 ## [v10.5.0] 2025-12-02
 

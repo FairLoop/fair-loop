@@ -162,7 +162,27 @@ if (TRUST_PROXY === 'true') {
 }
 
 app.use(compression());
-app.use('/static', express.static(path.join(buildPath, 'static')));
+app.use(
+  '/static',
+  express.static(path.join(buildPath, 'static'), {
+    setHeaders: (res, path) => {
+      const isMain = path.match(
+        /^\/.*static\/(js|css)\/main\.[a-z0-9]+\.(css|js|css\.map|js\.map)$/g
+      );
+      const isChunk = path.match(
+        /^\/.*static\/(js|css)\/.*\.[a-z0-9]+\.chunk\.(css|js|css\.map|js\.map)$/g
+      );
+      const isMapboxSDK = path.match(
+        /^\/.*static\/scripts\/mapbox\/mapbox-sdk@0.16.2\/mapbox-sdk\.min\.js$/g
+      );
+
+      if (isMain || isChunk || isMapboxSDK) {
+        // cache for one year
+        res.setHeader('Cache-Control', 'public, max-age=31557600');
+      }
+    },
+  })
+);
 app.use(cookieParser());
 
 // We don't serve favicon.ico from root. PNG images are used instead for icons through link elements.
@@ -217,7 +237,7 @@ const noCacheHeaders = {
   'Cache-control': 'no-cache, no-store, must-revalidate',
 };
 
-app.get('*', async (req, res) => {
+app.get('/{*splat}', async (req, res) => {
   if (req.url.startsWith('/static/')) {
     // The express.static middleware only handles static resources
     // that it finds, otherwise passes them through. However, we don't

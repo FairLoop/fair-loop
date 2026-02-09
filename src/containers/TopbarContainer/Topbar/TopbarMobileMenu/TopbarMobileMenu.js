@@ -124,17 +124,21 @@ const CustomLinkComponent = ({ linkConfig, currentPage }) => {
     const { name, params, to } = route || {};
     const className = classNames(css.navigationLink, getCurrentPageClass(name));
     return (
-      <NamedLink name={name} params={params} to={to} className={className}>
-        <span className={css.menuItemBorder} />
-        {text}
-      </NamedLink>
+      <li className={className}>
+        <NamedLink name={name} params={params} to={to}>
+          <span className={css.menuItemBorder} />
+          {text}
+        </NamedLink>
+      </li>
     );
   }
   return (
-    <ExternalLink href={href} className={css.navigationLink}>
-      <span className={css.menuItemBorder} />
-      {text}
-    </ExternalLink>
+    <li className={css.navigationLink}>
+      <ExternalLink href={href}>
+        <span className={css.menuItemBorder} />
+        {text}
+      </ExternalLink>
+    </li>
   );
 };
 
@@ -243,12 +247,11 @@ const TopbarMobileMenu = props => {
   };
 
   const manageListingsLinkMaybe = showCreateListingsLink ? (
-    <NamedLink
-      className={classNames(css.navigationLink, currentPageClass('ManageListingsPage'))}
-      name="ManageListingsPage"
-    >
-      <FormattedMessage id="TopbarMobileMenu.yourListingsLink" />
-    </NamedLink>
+    <li className={classNames(css.navigationLink, currentPageClass('ManageListingsPage'))}>
+      <NamedLink name="ManageListingsPage">
+        <FormattedMessage id="TopbarMobileMenu.yourListingsLink" />
+      </NamedLink>
+    </li>
   ) : null;
 
   return (
@@ -267,36 +270,32 @@ const TopbarMobileMenu = props => {
           setIsDropdownOpen={setIsLanguageDropdownOpen}
         />
 
-        <div className={css.accountLinksWrapper}>
-          <NamedLink
-            className={classNames(css.inbox, currentPageClass(`FavoriteListingsPage`))}
-            name="FavoriteListingsPage"
-          >
-            <FormattedMessage id="TopbarMobileMenu.favoritesLink" />
-          </NamedLink>
-          <NamedLink
-            className={classNames(css.inbox, currentPageClass(`InboxPage:${inboxTab}`))}
-            name="InboxPage"
-            params={{ tab: inboxTab }}
-          >
-            <FormattedMessage id="TopbarMobileMenu.inboxLink" />
-            {notificationCountBadge}
-          </NamedLink>
+        <ul className={css.accountLinksWrapper}>
+          <li className={classNames(css.inbox, currentPageClass(`FavoriteListingsPage`))}>
+            <NamedLink name="FavoriteListingsPage">
+              <FormattedMessage id="TopbarMobileMenu.favoritesLink" />
+            </NamedLink>
+          </li>
+
+          <li className={classNames(css.inbox, currentPageClass(`InboxPage:${inboxTab}`))}>
+            <NamedLink name="InboxPage" params={{ tab: inboxTab }}>
+              <FormattedMessage id="TopbarMobileMenu.inboxLink" />
+              {notificationCountBadge}
+            </NamedLink>
+          </li>
           {manageListingsLinkMaybe}
-          <NamedLink
-            className={classNames(css.navigationLink, currentPageClass('ProfileSettingsPage'))}
-            name="ProfileSettingsPage"
-          >
-            <FormattedMessage id="TopbarMobileMenu.profileSettingsLink" />
-          </NamedLink>
-          <NamedLink
-            className={classNames(css.navigationLink, currentPageClass('AccountSettingsPage'))}
-            name="AccountSettingsPage"
-          >
-            <FormattedMessage id="TopbarMobileMenu.accountSettingsLink" />
-          </NamedLink>
-        </div>
-        <div className={css.customLinksWrapper}>{extraLinks}</div>
+          <li className={classNames(css.navigationLink, currentPageClass('ProfileSettingsPage'))}>
+            <NamedLink name="ProfileSettingsPage">
+              <FormattedMessage id="TopbarMobileMenu.profileSettingsLink" />
+            </NamedLink>
+          </li>
+          <li className={classNames(css.navigationLink, currentPageClass('AccountSettingsPage'))}>
+            <NamedLink name="AccountSettingsPage">
+              <FormattedMessage id="TopbarMobileMenu.accountSettingsLink" />
+            </NamedLink>
+          </li>
+        </ul>
+        <ul className={css.customLinksWrapper}>{extraLinks}</ul>
         <div className={css.spacer} />
       </div>
       <div className={css.footer}>{createListingsLinkMaybe}</div>
