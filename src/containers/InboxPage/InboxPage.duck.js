@@ -5,6 +5,10 @@ import { getSupportedProcessesInfo } from '../../transactions/transaction';
 import { addMarketplaceEntities } from '../../ducks/marketplaceData.duck';
 
 const INBOX_PAGE_SIZE = 10;
+const TRANSLATED_FIELD_LANGUAGES = ['en', 'nl', 'es', 'fr', 'de'];
+const translatedListingTitleFields = TRANSLATED_FIELD_LANGUAGES.map(
+  lang => `publicData.title_${lang}`
+);
 
 // ================ Helper functions ================ //
 
@@ -49,7 +53,10 @@ export default inboxPageSlice.reducer;
 
 // ================ Load data ================ //
 
-const loadDataPayloadCreator = ({ params, search }, { dispatch, rejectWithValue, extra: sdk }) => {
+const loadDataPayloadCreator = (
+  { params, search },
+  { dispatch, rejectWithValue, extra: sdk }
+) => {
   const { tab } = params;
 
   const onlyFilterValues = {
@@ -85,8 +92,18 @@ const loadDataPayloadCreator = ({ params, search }, { dispatch, rejectWithValue,
       'payoutTotal',
       'lineItems',
     ],
-    'fields.listing': ['title', 'availabilityPlan', 'publicData.listingType'],
-    'fields.user': ['profile.displayName', 'profile.abbreviatedName', 'deleted', 'banned'],
+    'fields.listing': [
+      'title',
+      'availabilityPlan',
+      'publicData.listingType',
+      ...translatedListingTitleFields,
+    ],
+    'fields.user': [
+      'profile.displayName',
+      'profile.abbreviatedName',
+      'deleted',
+      'banned',
+    ],
     'fields.image': ['variants.square-small', 'variants.square-small2x'],
     page,
     perPage: INBOX_PAGE_SIZE,
@@ -104,7 +121,10 @@ const loadDataPayloadCreator = ({ params, search }, { dispatch, rejectWithValue,
     });
 };
 
-export const loadDataThunk = createAsyncThunk('InboxPage/loadData', loadDataPayloadCreator);
+export const loadDataThunk = createAsyncThunk(
+  'InboxPage/loadData',
+  loadDataPayloadCreator
+);
 
 // Backward compatible wrapper for the thunk
 export const loadData = (params, search) => (dispatch, getState, sdk) => {

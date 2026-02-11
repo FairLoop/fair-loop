@@ -1,1 +1,16 @@
-{{set-translations (asset "content/email-texts.json")}}{{t "PurchaseNewOrder.Subject" "{customerDisplayName} placed an order for {transactionListingTitle}" transactionListingTitle=transaction.listing.title customerDisplayName=transaction.customer.display-name }}
+{{set-translations (asset "content/email-texts.json")}}
+{{#eq "de" recipient.public-data.language}}
+  {{t "PurchaseNewOrder.Subject" "{customerDisplayName} placed an order for {transactionListingTitle}" transactionListingTitle=transaction.listing.public-data.title_de customerDisplayName=transaction.customer.display-name lang="de" }}
+{{/eq}}
+{{#eq "nl" recipient.public-data.language}}
+  {{t "PurchaseNewOrder.Subject" "{customerDisplayName} placed an order for {transactionListingTitle}" transactionListingTitle=transaction.listing.public-data.title_nl customerDisplayName=transaction.customer.display-name lang="nl" }}
+{{/eq}}
+{{#eq "fr" recipient.public-data.language}}
+  {{t "PurchaseNewOrder.Subject" "{customerDisplayName} placed an order for {transactionListingTitle}" transactionListingTitle=transaction.listing.public-data.title_fr customerDisplayName=transaction.customer.display-name lang="fr" }}
+{{/eq}}
+{{#eq "es" recipient.public-data.language}}
+  {{t "PurchaseNewOrder.Subject" "{customerDisplayName} placed an order for {transactionListingTitle}" transactionListingTitle=transaction.listing.public-data.title_es customerDisplayName=transaction.customer.display-name lang="es" }}
+{{/eq}}
+{{#eq "en" recipient.public-data.language}}
+  {{t "PurchaseNewOrder.Subject" "{customerDisplayName} placed an order for {transactionListingTitle}" transactionListingTitle=transaction.listing.public-data.title_en customerDisplayName=transaction.customer.display-name lang="en" }}
+{{/eq}}

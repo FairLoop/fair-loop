@@ -145,8 +145,8 @@ const EditListingWizardTab = props => {
 
   const onCompleteEditListingWizardTab = (tab, updateValues) => {
     const onUpdateListingOrCreateListingDraft = isNewURI
-      ? (tab, values) => onCreateListingDraft(values, config)
-      : (tab, values) => onUpdateListing(tab, values, config);
+      ? (tab, values) => onCreateListingDraft(values, config, tab === DETAILS)
+      : (tab, values) => onUpdateListing(tab, values, config, tab === DETAILS);
 
     const updateListingValues = isNewURI
       ? updateValues

@@ -1,1 +1,16 @@
-{{set-translations (asset "content/email-texts.json")}}{{t "InquiryNewInquiry.Subject" "{customerDisplayName} has sent you a new inquiry about {listingTitle}" customerDisplayName=transaction.customer.display-name listingTitle=transaction.listing.title }}
+{{set-translations (asset "content/email-texts.json")}}
+{{#eq "de" recipient.public-data.language}}
+  {{t "InquiryNewInquiry.Subject" "{customerDisplayName} has sent you a new inquiry about {listingTitle}" lang="de" customerDisplayName=transaction.customer.display-name listingTitle=transaction.listing.public-data.title_de }}
+{{/eq}}
+{{#eq "nl" recipient.public-data.language}}
+  {{t "InquiryNewInquiry.Subject" "{customerDisplayName} has sent you a new inquiry about {listingTitle}" lang="nl" customerDisplayName=transaction.customer.display-name listingTitle=transaction.listing.public-data.title_nl }}
+{{/eq}}
+{{#eq "fr" recipient.public-data.language}}
+  {{t "InquiryNewInquiry.Subject" "{customerDisplayName} has sent you a new inquiry about {listingTitle}" lang="fr" customerDisplayName=transaction.customer.display-name listingTitle=transaction.listing.public-data.title_fr }}
+{{/eq}}
+{{#eq "es" recipient.public-data.language}}
+  {{t "InquiryNewInquiry.Subject" "{customerDisplayName} has sent you a new inquiry about {listingTitle}" lang="es" customerDisplayName=transaction.customer.display-name listingTitle=transaction.listing.public-data.title_es }}
+{{/eq}}
+{{#eq "en" recipient.public-data.language}}
+  {{t "InquiryNewInquiry.Subject" "{customerDisplayName} has sent you a new inquiry about {listingTitle}" lang="en" customerDisplayName=transaction.customer.display-name listingTitle=transaction.listing.public-data.title_en }}
+{{/eq}}

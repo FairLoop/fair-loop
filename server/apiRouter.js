@@ -16,11 +16,18 @@ const transactionLineItems = require('./api/transaction-line-items');
 const initiatePrivileged = require('./api/initiate-privileged');
 const transitionPrivileged = require('./api/transition-privileged');
 const deleteAccount = require('./api/delete-account');
+const translateListing = require('./api/translate-listing');
 
 const createUserWithIdp = require('./api/auth/createUserWithIdp');
 
-const { authenticateFacebook, authenticateFacebookCallback } = require('./api/auth/facebook');
-const { authenticateGoogle, authenticateGoogleCallback } = require('./api/auth/google');
+const {
+  authenticateFacebook,
+  authenticateFacebookCallback,
+} = require('./api/auth/facebook');
+const {
+  authenticateGoogle,
+  authenticateGoogleCallback,
+} = require('./api/auth/google');
 const stripeRouter = require('./api/stripe');
 
 const router = express.Router();
@@ -36,7 +43,10 @@ router.use(
 
 // Deserialize Transit body string to JS data
 router.use((req, res, next) => {
-  if (req.get('Content-Type') === 'application/transit+json' && typeof req.body === 'string') {
+  if (
+    req.get('Content-Type') === 'application/transit+json' &&
+    typeof req.body === 'string'
+  ) {
     try {
       req.body = deserialize(req.body);
     } catch (e) {
@@ -57,6 +67,7 @@ router.post('/transaction-line-items', transactionLineItems);
 router.post('/initiate-privileged', initiatePrivileged);
 router.post('/transition-privileged', transitionPrivileged);
 router.post('/delete-account', deleteAccount);
+router.post('/translate-listing', translateListing);
 
 // Create user with identity provider (e.g. Facebook or Google)
 // This endpoint is called to create a new user after user has confirmed

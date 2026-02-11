@@ -1,1 +1,16 @@
-{{set-translations (asset "content/email-texts.json")}}{{t "PurchaseOrderReceivedFromDisputedProvider.Subject" "A disputed order for {listingTitle} is now considered completed" listingTitle=transaction.listing.title}}
+{{set-translations (asset "content/email-texts.json")}}
+{{#eq "de" recipient.public-data.language}}
+  {{t "PurchaseOrderReceivedFromDisputedProvider.Subject" "A disputed order for {listingTitle} is now considered completed" listingTitle=transaction.listing.public-data.title_de lang="de"}}
+{{/eq}}
+{{#eq "nl" recipient.public-data.language}}
+  {{t "PurchaseOrderReceivedFromDisputedProvider.Subject" "A disputed order for {listingTitle} is now considered completed" listingTitle=transaction.listing.public-data.title_nl lang="nl"}}
+{{/eq}}
+{{#eq "fr" recipient.public-data.language}}
+  {{t "PurchaseOrderReceivedFromDisputedProvider.Subject" "A disputed order for {listingTitle} is now considered completed" listingTitle=transaction.listing.public-data.title_fr lang="fr"}}
+{{/eq}}
+{{#eq "es" recipient.public-data.language}}
+  {{t "PurchaseOrderReceivedFromDisputedProvider.Subject" "A disputed order for {listingTitle} is now considered completed" listingTitle=transaction.listing.public-data.title_es lang="es"}}
+{{/eq}}
+{{#eq "en" recipient.public-data.language}}
+  {{t "PurchaseOrderReceivedFromDisputedProvider.Subject" "A disputed order for {listingTitle} is now considered completed" listingTitle=transaction.listing.public-data.title_en lang="en"}}
+{{/eq}}

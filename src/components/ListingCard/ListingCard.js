@@ -23,6 +23,7 @@ import {
   ListingCardThumbnail,
   FavoriteButton,
 } from '../../components';
+import { getTranslatedField } from '../../util/fieldHelpers';
 
 import css from './ListingCard.module.css';
 
@@ -47,7 +48,9 @@ const priceData = (price, currency, intl) => {
   return {};
 };
 
-const LazyImage = lazyLoadWithDimensions(ResponsiveImage, { loadAfterInitialRendering: 3000 });
+const LazyImage = lazyLoadWithDimensions(ResponsiveImage, {
+  loadAfterInitialRendering: 3000,
+});
 
 const PriceMaybe = props => {
   const { price, publicData, config, intl, listingTypeConfig } = props;
@@ -56,16 +59,27 @@ const PriceMaybe = props => {
     return null;
   }
 
-  const isPriceVariationsInUse = isPriceVariationsEnabled(publicData, listingTypeConfig);
-  const hasMultiplePriceVariants = isPriceVariationsInUse && publicData?.priceVariants?.length > 1;
+  const isPriceVariationsInUse = isPriceVariationsEnabled(
+    publicData,
+    listingTypeConfig
+  );
+  const hasMultiplePriceVariants =
+    isPriceVariationsInUse && publicData?.priceVariants?.length > 1;
 
   const isBookable = isBookingProcessAlias(publicData?.transactionProcessAlias);
-  const { formattedPrice, priceTitle } = priceData(price, config.currency, intl);
+  const { formattedPrice, priceTitle } = priceData(
+    price,
+    config.currency,
+    intl
+  );
 
   const priceValue = <span className={css.priceValue}>{formattedPrice}</span>;
   const pricePerUnit = isBookable ? (
     <span className={css.perUnit}>
-      <FormattedMessage id="ListingCard.perUnit" values={{ unitType: publicData?.unitType }} />
+      <FormattedMessage
+        id="ListingCard.perUnit"
+        values={{ unitType: publicData?.unitType }}
+      />
     </span>
   ) : (
     ''
@@ -79,7 +93,10 @@ const PriceMaybe = props => {
           values={{ priceValue, pricePerUnit }}
         />
       ) : (
-        <FormattedMessage id="ListingCard.price" values={{ priceValue, pricePerUnit }} />
+        <FormattedMessage
+          id="ListingCard.price"
+          values={{ priceValue, pricePerUnit }}
+        />
       )}
     </div>
   );
@@ -118,9 +135,13 @@ const ListingCardImage = props => {
   } = props;
 
   const firstImage =
-    currentListing.images && currentListing.images.length > 0 ? currentListing.images[0] : null;
+    currentListing.images && currentListing.images.length > 0
+      ? currentListing.images[0]
+      : null;
   const variants = firstImage
-    ? Object.keys(firstImage?.attributes?.variants).filter(k => k.startsWith(variantPrefix))
+    ? Object.keys(firstImage?.attributes?.variants).filter(k =>
+        k.startsWith(variantPrefix)
+      )
     : [];
 
   // Render the listing image only if listing images are enabled in the listing type
@@ -138,7 +159,11 @@ const ListingCardImage = props => {
         variants={variants}
         sizes={renderSizes}
       />
-      <FavoriteButton listingId={currentListing.id} listingAuthor={currentListing.author} isVisible={true} />
+      <FavoriteButton
+        listingId={currentListing.id}
+        listingAuthor={currentListing.author}
+        isVisible={true}
+      />
     </AspectRatioWrapper>
   ) : (
     <ListingCardThumbnail
@@ -183,14 +208,17 @@ export const ListingCard = props => {
   const currentListing = ensureListing(listing);
   const id = currentListing.id.uuid;
   const { title = '', price, publicData } = currentListing.attributes;
-  const slug = createSlug(title);
+  const translatedTitle = getTranslatedField(publicData, 'title', title);
+  const slug = createSlug(translatedTitle);
 
   const author = ensureUser(listing.author);
   const authorName = author.attributes.profile.displayName;
 
   const { listingType, cardStyle } = publicData || {};
   const validListingTypes = config.listing.listingTypes;
-  const foundListingTypeConfig = validListingTypes.find(conf => conf.listingType === listingType);
+  const foundListingTypeConfig = validListingTypes.find(
+    conf => conf.listingType === listingType
+  );
   const showListingImage = requireListingImage(foundListingTypeConfig);
 
   const {
@@ -211,7 +239,7 @@ export const ListingCard = props => {
     <NamedLink className={classes} name="ListingPage" params={{ id, slug }}>
       <ListingCardImage
         renderSizes={renderSizes}
-        title={title}
+        title={translatedTitle}
         currentListing={currentListing}
         config={config}
         setActivePropsMaybe={setActivePropsMaybe}
@@ -232,7 +260,7 @@ export const ListingCard = props => {
         <div className={css.mainInfo}>
           {showListingImage && (
             <div className={css.title}>
-              {richText(title, {
+              {richText(translatedTitle, {
                 longWordMinLength: MIN_LENGTH_FOR_LONG_WORDS,
                 longWordClass: css.longWord,
               })}
@@ -240,7 +268,10 @@ export const ListingCard = props => {
           )}
           {showAuthorInfo ? (
             <div className={css.authorInfo}>
-              <FormattedMessage id="ListingCard.author" values={{ authorName }} />
+              <FormattedMessage
+                id="ListingCard.author"
+                values={{ authorName }}
+              />
             </div>
           ) : null}
         </div>
