@@ -14,6 +14,19 @@ way to update this template, but currently, we follow a pattern:
 
 ## Upcoming version 2026-XX-XX
 
+- [fix] Routes.js: fix a bug with hash selector. (CSS.escape was not used correctly.)
+  [#774](https://github.com/sharetribe/web-template/pull/774)
+- [fix] SearchPage.shared.js: fix a bug with keywords search type. (SortBy doesn't pick relevance
+  option when keywords search is active.)
+  [#772](https://github.com/sharetribe/web-template/pull/772)
+- [change] SearchCTA/FilterDateRange: tune scroll behaviour.
+  [#771](https://github.com/sharetribe/web-template/pull/771)
+- [fix] Routes.js: document.querySelector must have valid CSS id.
+  [#773](https://github.com/sharetribe/web-template/pull/773)
+- [fix] richText.js: fix a bug with break chars configuration. Old comma rule caused text flow
+  issues. [#770](https://github.com/sharetribe/web-template/pull/770)
+- [fix] TopbarMobileMenu: logged out user saw bullet points in custom links.
+  [#769](https://github.com/sharetribe/web-template/pull/769)
 - [fix] ListingPage.duck.js: fix a bug where inquiry is not allowed for customer role on OFFER flow.
   [#768](https://github.com/sharetribe/web-template/pull/768)
 - [fix] EditListingPage.duck.js: fix a bug where exception cache was not updated correctly.

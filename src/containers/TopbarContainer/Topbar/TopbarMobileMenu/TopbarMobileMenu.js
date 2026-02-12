@@ -219,7 +219,7 @@ const TopbarMobileMenu = props => {
             />
           </div>
 
-          <div className={css.customLinksWrapper}>{extraLinks}</div>
+          <ul className={css.customLinksWrapper}>{extraLinks}</ul>
 
           <CustomDropDownLanguage
             isDropdownOpen={isLanguageDropdownOpen}
