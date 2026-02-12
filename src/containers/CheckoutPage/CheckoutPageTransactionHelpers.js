@@ -219,7 +219,7 @@ export const processCheckoutWithPayment = (orderParams, extraPaymentParams) => {
     stripeCustomer,
     stripePaymentMethodId,
   } = extraPaymentParams;
-  const { paymentMethodTypes } = orderParams?.protectedData || [];
+  const { paymentMethodTypes = [] } = orderParams?.protectedData || [];
   const storedTx = ensureTransaction(pageData.transaction);
 
   const ensuredStripeCustomer = ensureStripeCustomer(stripeCustomer);

@@ -25,6 +25,7 @@ import {
   fetchStripeAccount,
 } from '../../ducks/stripeConnectAccount.duck';
 import { fetchCurrentUser } from '../../ducks/user.duck';
+import { translateListing } from '../../util/api';
 
 const { UUID } = sdkTypes;
 
@@ -164,9 +165,9 @@ const updateStockOfListingMaybe = (listingId, stockTotals, dispatch) => {
 // create, set stock, show listing (to get updated currentStock entity)
 export const createListingDraftThunk = createAsyncThunk(
   'EditListingPage/createListingDraft',
-  ({ data, config }, { dispatch, rejectWithValue, extra: sdk }) => {
+  ({ data, config, shouldTranslate }, { dispatch, rejectWithValue, extra: sdk }) => {
     const { stockUpdate, images, ...rest } = data;
-
+    const listingFieldConfig = config.listing.listingFields;
     // If images should be saved, create array out of the image UUIDs for the API call
     const imageProperty = typeof images !== 'undefined' ? { images: imageIds(images) } : {};
     const ownListingValues = { ...imageProperty, ...rest };
@@ -179,8 +180,7 @@ export const createListingDraftThunk = createAsyncThunk(
       ...imageVariantInfo.imageVariants,
     };
 
-    return sdk.ownListings
-      .createDraft(ownListingValues, queryParams)
+    return shouldTranslate ? translateListing({ listingData: ownListingValues, queryParams, editListingMode: ['createDraft'], listingFieldConfig }) : sdk.ownListings.createDraft(ownListingValues, queryParams)
       .then(response => {
         dispatch(addMarketplaceEntities(response));
         const listingId = response.data.data.id;
@@ -194,8 +194,8 @@ export const createListingDraftThunk = createAsyncThunk(
   }
 );
 // Backward compatible wrappers for the thunks
-export const requestCreateListingDraft = (data, config) => (dispatch, getState, sdk) => {
-  return dispatch(createListingDraftThunk({ data, config })).unwrap();
+export const requestCreateListingDraft = (data, config, shouldTranslate) => (dispatch, getState, sdk) => {
+  return dispatch(createListingDraftThunk({ data, config, shouldTranslate })).unwrap();
 };
 
 ////////////////////
@@ -208,13 +208,14 @@ export const requestCreateListingDraft = (data, config) => (dispatch, getState, 
 // NOTE: what comes to stock management, this follows the same pattern used in create listing call
 export const updateListingThunk = createAsyncThunk(
   'EditListingPage/updateListing',
-  ({ tab, data, config }, { dispatch, getState, rejectWithValue, extra: sdk }) => {
+  ({ tab, data, config, shouldTranslate }, { dispatch, getState, rejectWithValue, extra: sdk }) => {
     const { id, stockUpdate, images, ...rest } = data;
 
     // If images should be saved, create array out of the image UUIDs for the API call
     const imageProperty = typeof images !== 'undefined' ? { images: imageIds(images) } : {};
     const ownListingUpdateValues = { id, ...imageProperty, ...rest };
     const imageVariantInfo = getImageVariantInfo(config.layout.listingImage);
+    const listingFieldConfig = config.listing.listingFields;
     const queryParams = {
       expand: true,
       include: ['author', 'images', 'currentStock'],
@@ -223,7 +224,7 @@ export const updateListingThunk = createAsyncThunk(
     };
 
     return updateStockOfListingMaybe(id, stockUpdate, dispatch)
-      .then(() => sdk.ownListings.update(ownListingUpdateValues, queryParams))
+      .then(() => shouldTranslate ? translateListing({ listingData: ownListingUpdateValues, queryParams, editListingMode: ['update'], listingFieldConfig }) : sdk.ownListings.update(ownListingUpdateValues, queryParams))
       .then(response => {
         const state = getState();
         const existingTimeZone =
@@ -250,8 +251,8 @@ export const updateListingThunk = createAsyncThunk(
   }
 );
 // Backward compatible wrappers for the thunks
-export const requestUpdateListing = (tab, data, config) => (dispatch, getState, sdk) => {
-  return dispatch(updateListingThunk({ tab, data, config }))
+export const requestUpdateListing = (tab, data, config, shouldTranslate) => (dispatch, getState, sdk) => {
+  return dispatch(updateListingThunk({ tab, data, config, shouldTranslate }))
     .unwrap()
     .then(({ response, tab }) => {
       return response;

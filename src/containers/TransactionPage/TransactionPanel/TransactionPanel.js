@@ -1,7 +1,11 @@
 import React, { Component } from 'react';
 import classNames from 'classnames';
 
-import { FormattedMessage, injectIntl, intlShape } from '../../../util/reactIntl';
+import {
+  FormattedMessage,
+  injectIntl,
+  intlShape,
+} from '../../../util/reactIntl';
 import { propTypes } from '../../../util/types';
 import { userDisplayNameAsString } from '../../../util/data';
 import { isMobileSafari } from '../../../util/userAgent';
@@ -26,6 +30,7 @@ import DiminishedActionButtonMaybe from './DiminishedActionButtonMaybe';
 import PanelHeading from './PanelHeading';
 
 import css from './TransactionPanel.module.css';
+import { getTranslatedField } from '../../../util/fieldHelpers';
 
 // Helper function to get display names for different roles
 const displayNames = (currentUser, provider, customer, intl) => {
@@ -35,9 +40,13 @@ const displayNames = (currentUser, provider, customer, intl) => {
   let otherUserDisplayName = '';
   let otherUserDisplayNameString = '';
   const currentUserIsCustomer =
-    currentUser.id && customer?.id && currentUser.id.uuid === customer?.id?.uuid;
+    currentUser.id &&
+    customer?.id &&
+    currentUser.id.uuid === customer?.id?.uuid;
   const currentUserIsProvider =
-    currentUser.id && provider?.id && currentUser.id.uuid === provider?.id?.uuid;
+    currentUser.id &&
+    provider?.id &&
+    currentUser.id.uuid === provider?.id?.uuid;
 
   if (currentUserIsCustomer) {
     otherUserDisplayName = authorDisplayName;
@@ -126,7 +135,11 @@ export class TransactionPanelComponent extends Component {
     this.setState({ sendMessageFormFocused: true });
     if (this.isMobSaf) {
       // Scroll to bottom
-      window.scroll({ top: document.body.scrollHeight, left: 0, behavior: 'smooth' });
+      window.scroll({
+        top: document.body.scrollHeight,
+        left: 0,
+        behavior: 'smooth',
+      });
     }
   }
 
@@ -214,33 +227,44 @@ export class TransactionPanelComponent extends Component {
       isProviderDeleted,
     };
 
-    const { authorDisplayName, customerDisplayName, otherUserDisplayNameString } = displayNames(
-      currentUser,
-      provider,
-      customer,
-      intl
-    );
+    const {
+      authorDisplayName,
+      customerDisplayName,
+      otherUserDisplayNameString,
+    } = displayNames(currentUser, provider, customer, intl);
 
     const deletedListingTitle = intl.formatMessage({
       id: 'TransactionPanel.deletedListingTitle',
     });
 
-    const listingTitle = listingDeleted ? deletedListingTitle : listing?.attributes?.title;
+    const listingTitle = listingDeleted
+      ? deletedListingTitle
+      : getTranslatedField(
+          listing?.attributes?.publicData,
+          'title',
+          listing?.attributes?.title
+        );
     const firstImage = listing?.images?.length > 0 ? listing?.images[0] : null;
 
     const listingType = listing?.attributes?.publicData?.listingType;
     const listingTypeConfigs = config.listing.listingTypes;
-    const listingTypeConfig = listingTypeConfigs.find(conf => conf.listingType === listingType);
+    const listingTypeConfig = listingTypeConfigs.find(
+      conf => conf.listingType === listingType
+    );
     const showPrice = isInquiryProcess && displayPrice(listingTypeConfig);
     const showBreakDown = stateData.showBreakDown !== false; // NOTE: undefined defaults to true due to historical reasons.
 
     const showSendMessageForm =
-      !isCustomerBanned && !isCustomerDeleted && !isProviderBanned && !isProviderDeleted;
+      !isCustomerBanned &&
+      !isCustomerDeleted &&
+      !isProviderBanned &&
+      !isProviderDeleted;
 
     // Only show order panel for users who have listing viewing rights, otherwise
     // show the detail card heading.
     const showOrderPanel = stateData.showOrderPanel && hasViewingRights;
-    const showDetailCardHeadings = stateData.showDetailCardHeadings || !hasViewingRights;
+    const showDetailCardHeadings =
+      stateData.showDetailCardHeadings || !hasViewingRights;
 
     const deliveryMethod = protectedData?.deliveryMethod || 'none';
     const priceVariantName = protectedData?.priceVariantName;
@@ -274,7 +298,10 @@ export class TransactionPanelComponent extends Component {
             <PanelHeading
               processName={stateData.processName}
               processState={stateData.processState}
-              showExtraInfo={allowShowingExtraInfo(stateData.showExtraInfo, transactionPartyInfo)}
+              showExtraInfo={allowShowingExtraInfo(
+                stateData.showExtraInfo,
+                transactionPartyInfo
+              )}
               showPriceOnMobile={showPrice}
               price={listing?.attributes?.price}
               intl={intl}
@@ -290,7 +317,9 @@ export class TransactionPanelComponent extends Component {
 
             <TextMaybe
               rootClassName={css.inquiryMessageContainer}
-              heading={intl.formatMessage({ id: 'TransactionPanel.inquiryMessageHeading' })}
+              heading={intl.formatMessage({
+                id: 'TransactionPanel.inquiryMessageHeading',
+              })}
               text={inquiryMessage}
               isOwn={isCustomer}
               showText={isInquiryProcess}
@@ -376,14 +405,18 @@ export class TransactionPanelComponent extends Component {
             {stateData.showActionButtons ? (
               <>
                 <div className={css.mobileActionButtonSpacer}></div>
-                <div className={css.mobileActionButtons}>{actionButtons('mobile')}</div>
+                <div className={css.mobileActionButtons}>
+                  {actionButtons('mobile')}
+                </div>
               </>
             ) : null}
           </div>
 
           <div className={css.asideDesktop}>
             <div
-              className={classNames(css.stickySection, { [css.noListingImage]: !showListingImage })}
+              className={classNames(css.stickySection, {
+                [css.noListingImage]: !showListingImage,
+              })}
             >
               <div className={css.detailCard}>
                 <DetailCardImage
@@ -405,7 +438,10 @@ export class TransactionPanelComponent extends Component {
                     ) : (
                       <NamedLink
                         name="ListingPage"
-                        params={{ id: listing.id?.uuid, slug: createSlug(listingTitle) }}
+                        params={{
+                          id: listing.id?.uuid,
+                          slug: createSlug(listingTitle),
+                        }}
                       >
                         {listingTitle}
                       </NamedLink>
@@ -426,7 +462,9 @@ export class TransactionPanelComponent extends Component {
                 ) : null}
 
                 {stateData.showActionButtons ? (
-                  <div className={css.desktopActionButtons}>{actionButtons('desktop')}</div>
+                  <div className={css.desktopActionButtons}>
+                    {actionButtons('desktop')}
+                  </div>
                 ) : null}
               </div>
               <DiminishedActionButtonMaybe

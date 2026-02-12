@@ -8,7 +8,10 @@ import appSettings from '../../config/settings.js';
 import { useConfiguration } from '../../context/configurationContext';
 import { useRouteConfiguration } from '../../context/routeConfigurationContext';
 import { FormattedMessage, useIntl } from '../../util/reactIntl';
-import { createResourceLocatorString, findRouteByRouteName } from '../../util/routes';
+import {
+  createResourceLocatorString,
+  findRouteByRouteName,
+} from '../../util/routes';
 import {
   LINE_ITEM_OFFER,
   LINE_ITEM_REQUEST,
@@ -31,7 +34,10 @@ import {
 } from '../../transactions/transaction';
 
 import { getMarketplaceEntities } from '../../ducks/marketplaceData.duck';
-import { isScrollingDisabled, manageDisableScrolling } from '../../ducks/ui.duck';
+import {
+  isScrollingDisabled,
+  manageDisableScrolling,
+} from '../../ducks/ui.duck';
 import { initializeCardPaymentData } from '../../ducks/stripe.duck.js';
 
 import {
@@ -73,7 +79,11 @@ import {
   fetchTransactionLineItems,
 } from './TransactionPage.duck';
 import css from './TransactionPage.module.css';
-import { getCurrentUserTypeRoles, hasPermissionToViewData } from '../../util/userHelpers.js';
+import {
+  getCurrentUserTypeRoles,
+  hasPermissionToViewData,
+} from '../../util/userHelpers.js';
+import { getTranslatedField } from '../../util/fieldHelpers';
 
 const MAX_MOBILE_SCREEN_WIDTH = 1023;
 
@@ -191,7 +201,8 @@ const handleNavigateToMakeOfferPage = parameters => () => {
  * @returns {Object} E.g. { hasValidData: true, errorMessageId: null }
  */
 const getDataValidationResult = (transaction, process) => {
-  const { state, transitions = [], metadata = {} } = transaction?.attributes || {};
+  const { state, transitions = [], metadata = {} } =
+    transaction?.attributes || {};
   const offers = metadata?.offers || [];
 
   const hasFn = (property, obj) => !!obj?.[property];
@@ -203,7 +214,10 @@ const getDataValidationResult = (transaction, process) => {
   // Note: negotiation state refers to the state where the user can make an offer.
   return hasFn('isValidNegotiationOffersArray', process) && isNegotiationState
     ? {
-        hasValidData: process?.isValidNegotiationOffersArray(transitions, offers),
+        hasValidData: process?.isValidNegotiationOffersArray(
+          transitions,
+          offers
+        ),
         errorMessageId:
           'TransactionPage.default-negotiation.validation.pastNegotiationOffersInvalid',
       }
@@ -262,9 +276,13 @@ export const TransactionPageComponent = props => {
   const [disputeSubmitted, setDisputeSubmitted] = useState(false);
   const [isReviewModalOpen, setReviewModalOpen] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
-  const [isRequestChangesModalOpen, setRequestChangesModalOpen] = useState(false);
+  const [isRequestChangesModalOpen, setRequestChangesModalOpen] = useState(
+    false
+  );
   const [changeRequestSubmitted, setChangeRequestSubmitted] = useState(false);
-  const [isMakeCounterOfferModalOpen, setMakeCounterOfferModalOpen] = useState(false);
+  const [isMakeCounterOfferModalOpen, setMakeCounterOfferModalOpen] = useState(
+    false
+  );
   const [counterOfferSubmitted, setCounterOfferSubmitted] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -312,7 +330,9 @@ export const TransactionPageComponent = props => {
   const isProviderRole = transactionRole === PROVIDER;
   const isCustomerRole = transactionRole === CUSTOMER;
 
-  const processName = resolveLatestProcessName(transaction?.attributes?.processName);
+  const processName = resolveLatestProcessName(
+    transaction?.attributes?.processName
+  );
   let process = null;
   try {
     process = processName ? getProcess(processName) : null;
@@ -321,12 +341,20 @@ export const TransactionPageComponent = props => {
   }
 
   const isTxOnPaymentPending = tx => {
-    return process ? process.getState(tx) === process.states.PENDING_PAYMENT : null;
+    return process
+      ? process.getState(tx) === process.states.PENDING_PAYMENT
+      : null;
   };
 
-  const redirectToCheckoutPageWithInitialValues = (initialValues, currentListing) => {
+  const redirectToCheckoutPageWithInitialValues = (
+    initialValues,
+    currentListing
+  ) => {
     // Customize checkout page state with current listing and selected bookingDates
-    const { setInitialValues } = findRouteByRouteName('CheckoutPage', routeConfiguration);
+    const { setInitialValues } = findRouteByRouteName(
+      'CheckoutPage',
+      routeConfiguration
+    );
     callSetInitialValues(setInitialValues, initialValues);
 
     // Clear previous Stripe errors from store if there is any
@@ -337,7 +365,10 @@ export const TransactionPageComponent = props => {
       createResourceLocatorString(
         'CheckoutPage',
         routeConfiguration,
-        { id: currentListing.id.uuid, slug: createSlug(currentListing.attributes.title) },
+        {
+          id: currentListing.id.uuid,
+          slug: createSlug(currentListing.attributes.title),
+        },
         {}
       )
     );
@@ -485,7 +516,13 @@ export const TransactionPageComponent = props => {
     id: 'TransactionPage.deletedListing',
   });
   const listingDeleted = listing?.attributes?.deleted;
-  const listingTitle = listingDeleted ? deletedListingTitle : listing?.attributes?.title;
+  const listingTitle = listingDeleted
+    ? deletedListingTitle
+    : getTranslatedField(
+        listing?.attributes?.publicData,
+        'title',
+        listing?.attributes?.title
+      );
 
   const isCustomerBanned = !!customer?.attributes?.banned;
   const isCustomerDeleted = !!customer?.attributes?.deleted;
@@ -503,9 +540,14 @@ export const TransactionPageComponent = props => {
     transaction.provider &&
     !fetchTransactionError;
 
-  const isOwnSale = isDataAvailable && isProviderRole && currentUser.id.uuid === provider?.id?.uuid;
+  const isOwnSale =
+    isDataAvailable &&
+    isProviderRole &&
+    currentUser.id.uuid === provider?.id?.uuid;
   const isOwnOrder =
-    isDataAvailable && isCustomerRole && currentUser.id.uuid === customer?.id?.uuid;
+    isDataAvailable &&
+    isCustomerRole &&
+    currentUser.id.uuid === customer?.id?.uuid;
 
   const {
     customer: isCustomerUserTypeRole,
@@ -524,14 +566,18 @@ export const TransactionPageComponent = props => {
     // to 'orders' inbox tab. Otherwise, redirect to 'sales' tab.
     const tab = !isProviderUserTypeRole ? 'orders' : 'sales';
     // eslint-disable-next-line no-console
-    console.error('Tried to access a sale that was not owned by the current user');
+    console.error(
+      'Tried to access a sale that was not owned by the current user'
+    );
     return <NamedRedirect name="InboxPage" params={{ tab }} />;
   } else if (isDataAvailable && isCustomerRole && !isOwnOrder) {
     // If the user's user type does not have a customer role set, redirect
     // to 'sales' inbox tab. Otherwise, redirect to 'orders' tab.
     const tab = !isCustomerUserTypeRole ? 'sales' : 'orders';
     // eslint-disable-next-line no-console
-    console.error('Tried to access an order that was not owned by the current user');
+    console.error(
+      'Tried to access an order that was not owned by the current user'
+    );
     return <NamedRedirect name="InboxPage" params={{ tab }} />;
   }
 
@@ -607,11 +653,14 @@ export const TransactionPageComponent = props => {
 
   const formatLineItemUnitType = (transaction, listing) => {
     // unitType should always be saved to transaction's protected data
-    const unitTypeInProtectedData = transaction?.attributes?.protectedData?.unitType;
+    const unitTypeInProtectedData =
+      transaction?.attributes?.protectedData?.unitType;
     // If unitType is not found (old or mutated data), we check listing's publicData
     // Note: this might have changed over time
-    const unitTypeInListingPublicData = listing?.attributes?.publicData?.unitType;
-    return `line-item/${unitTypeInProtectedData || unitTypeInListingPublicData}`;
+    const unitTypeInListingPublicData =
+      listing?.attributes?.publicData?.unitType;
+    return `line-item/${unitTypeInProtectedData ||
+      unitTypeInListingPublicData}`;
   };
 
   const lineItemUnitType = unitLineItem
@@ -647,7 +696,8 @@ export const TransactionPageComponent = props => {
 
   const isNegotiationProcess = processName === NEGOTIATION_PROCESS_NAME;
   const isRegularNegotiation =
-    isNegotiationProcess && transaction?.attributes?.protectedData?.unitType === OFFER;
+    isNegotiationProcess &&
+    transaction?.attributes?.protectedData?.unitType === OFFER;
 
   const isCounterpartyInactive =
     (isCustomerRole && (isProviderBanned || isProviderDeleted)) ||
@@ -698,7 +748,9 @@ export const TransactionPageComponent = props => {
           isProvider={isProviderRole}
           transitions={txTransitions}
           {...getDataValidationResult(transaction, process)}
-          timeZone={listing?.attributes?.availabilityPlan?.timezone || 'Etc/UTC'}
+          timeZone={
+            listing?.attributes?.availabilityPlan?.timezone || 'Etc/UTC'
+          }
           isCounterpartyInactive={isCounterpartyInactive}
         />
       )}
@@ -710,7 +762,8 @@ export const TransactionPageComponent = props => {
           intl={intl}
           currentUser={currentUser}
           hasOlderMessages={
-            totalMessagePages > oldestMessagePageFetched && !fetchMessagesInProgress
+            totalMessagePages > oldestMessagePageFetched &&
+            !fetchMessagesInProgress
           }
           onOpenReviewModal={onOpenReviewModal}
           onShowOlderMessages={() => onShowMoreMessages(transaction.id, config)}
@@ -756,7 +809,10 @@ export const TransactionPageComponent = props => {
               ) : (
                 <NamedLink
                   name="ListingPage"
-                  params={{ id: listing.id?.uuid, slug: createSlug(listingTitle) }}
+                  params={{
+                    id: listing.id?.uuid,
+                    slug: createSlug(listingTitle),
+                  }}
                 >
                   {listingTitle}
                 </NamedLink>
@@ -764,12 +820,16 @@ export const TransactionPageComponent = props => {
             </H4>
           }
           author={listing.author}
-          onSubmit={isNegotiationProcess ? onMakeOffer : handleSubmitOrderRequest}
+          onSubmit={
+            isNegotiationProcess ? onMakeOffer : handleSubmitOrderRequest
+          }
           onManageDisableScrolling={onManageDisableScrolling}
           {...restOfProps}
           validListingTypes={config.listing.listingTypes}
           marketplaceCurrency={config.currency}
-          dayCountAvailableForBooking={config.stripe.dayCountAvailableForBooking}
+          dayCountAvailableForBooking={
+            config.stripe.dayCountAvailableForBooking
+          }
           marketplaceName={config.marketplaceName}
         />
       }
@@ -778,14 +838,17 @@ export const TransactionPageComponent = props => {
     loadingOrFailedFetching
   );
   const marketplaceCurrency = config.currency;
-  const currency = transaction?.attributes?.payinTotal?.currency || marketplaceCurrency;
-  const currencyConfig = currency ? appSettings.getCurrencyFormatting(currency) : null;
+  const currency =
+    transaction?.attributes?.payinTotal?.currency || marketplaceCurrency;
+  const currencyConfig = currency
+    ? appSettings.getCurrencyFormatting(currency)
+    : null;
   const counterOffers = [
     process?.transitions?.CUSTOMER_MAKE_COUNTER_OFFER,
     process?.transitions?.PROVIDER_MAKE_COUNTER_OFFER,
   ];
-  const negotiationOfferLineItem = transaction?.attributes?.lineItems?.find(item =>
-    [LINE_ITEM_REQUEST, LINE_ITEM_OFFER].includes(item.code)
+  const negotiationOfferLineItem = transaction?.attributes?.lineItems?.find(
+    item => [LINE_ITEM_REQUEST, LINE_ITEM_OFFER].includes(item.code)
   );
   const currentOffer = negotiationOfferLineItem?.unitPrice;
   const showMakeCounterOfferModal =
@@ -813,7 +876,10 @@ export const TransactionPageComponent = props => {
       )}
       scrollingDisabled={scrollingDisabled}
     >
-      <LayoutSingleColumn topbar={<TopbarContainer />} footer={<FooterContainer />}>
+      <LayoutSingleColumn
+        topbar={<TopbarContainer />}
+        footer={<FooterContainer />}
+      >
         <div className={css.root}>{panel}</div>
         <ReviewModal
           id="ReviewOrderModal"
@@ -842,7 +908,9 @@ export const TransactionPageComponent = props => {
               setDisputeSubmitted
             )}
             disputeSubmitted={disputeSubmitted}
-            disputeInProgress={transitionInProgress === process.transitions.DISPUTE}
+            disputeInProgress={
+              transitionInProgress === process.transitions.DISPUTE
+            }
             disputeError={transitionError}
           />
         ) : null}
@@ -863,7 +931,9 @@ export const TransactionPageComponent = props => {
               setChangeRequestSubmitted
             )}
             changeRequestSubmitted={changeRequestSubmitted}
-            changeRequestInProgress={transitionInProgress === process.transitions.REQUEST_CHANGES}
+            changeRequestInProgress={
+              transitionInProgress === process.transitions.REQUEST_CHANGES
+            }
             changeRequestError={transitionError}
           />
         ) : null}
@@ -887,7 +957,9 @@ export const TransactionPageComponent = props => {
             )}
             currentOffer={currentOffer}
             counterOfferSubmitted={counterOfferSubmitted}
-            counterOfferInProgress={counterOffers.includes(transitionInProgress)}
+            counterOfferInProgress={counterOffers.includes(
+              transitionInProgress
+            )}
             counterOfferError={transitionError}
             currencyConfig={currencyConfig}
           />
@@ -923,7 +995,10 @@ const mapStateToProps = state => {
   } = state.TransactionPage;
   const { currentUser } = state.user;
 
-  const transactions = getMarketplaceEntities(state, transactionRef ? [transactionRef] : []);
+  const transactions = getMarketplaceEntities(
+    state,
+    transactionRef ? [transactionRef] : []
+  );
   const transaction = transactions.length > 0 ? transactions[0] : null;
 
   return {
@@ -957,13 +1032,16 @@ const mapDispatchToProps = dispatch => {
   return {
     onTransition: (txId, transitionName, params) =>
       dispatch(makeTransition(txId, transitionName, params)),
-    onShowMoreMessages: (txId, config) => dispatch(fetchMoreMessages(txId, config)),
-    onSendMessage: (txId, message, config) => dispatch(sendMessage(txId, message, config)),
+    onShowMoreMessages: (txId, config) =>
+      dispatch(fetchMoreMessages(txId, config)),
+    onSendMessage: (txId, message, config) =>
+      dispatch(sendMessage(txId, message, config)),
     onManageDisableScrolling: (componentId, disableScrolling) =>
       dispatch(manageDisableScrolling(componentId, disableScrolling)),
     onSendReview: (tx, transitionOptions, params, config) =>
       dispatch(sendReview(tx, transitionOptions, params, config)),
-    callSetInitialValues: (setInitialValues, values) => dispatch(setInitialValues(values)),
+    callSetInitialValues: (setInitialValues, values) =>
+      dispatch(setInitialValues(values)),
     onInitializeCardPaymentData: () => dispatch(initializeCardPaymentData()),
     onFetchTransactionLineItems: (orderData, listingId, isOwnListing) =>
       dispatch(fetchTransactionLineItems(orderData, listingId, isOwnListing)), // for OrderPanel
@@ -974,10 +1052,7 @@ const mapDispatchToProps = dispatch => {
 
 const TransactionPage = compose(
   withRouter,
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )
+  connect(mapStateToProps, mapDispatchToProps)
 )(TransactionPageComponent);
 
 export default TransactionPage;

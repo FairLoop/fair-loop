@@ -56,6 +56,7 @@ import InboxSearchForm from './InboxSearchForm/InboxSearchForm';
 
 import { stateDataShape, getStateData } from './InboxPage.stateData';
 import css from './InboxPage.module.css';
+import { getTranslatedField } from '../../util/fieldHelpers';
 
 // Check if the transaction line-items use booking-related units
 const getUnitLineItem = lineItems => {
@@ -87,7 +88,9 @@ const bookingData = (tx, lineItemUnitType, timeZone) => {
 
 const BookingTimeInfoMaybe = props => {
   const { transaction, ...rest } = props;
-  const processName = resolveLatestProcessName(transaction?.attributes?.processName);
+  const processName = resolveLatestProcessName(
+    transaction?.attributes?.processName
+  );
   const process = getProcess(processName);
   const isInquiry = process.getState(transaction) === process.states.INQUIRY;
 
@@ -107,8 +110,13 @@ const BookingTimeInfoMaybe = props => {
     ? DATE_TYPE_DATETIME
     : DATE_TYPE_DATE;
 
-  const timeZone = transaction?.listing?.attributes?.availabilityPlan?.timezone || 'Etc/UTC';
-  const { bookingStart, bookingEnd } = bookingData(transaction, lineItemUnitType, timeZone);
+  const timeZone =
+    transaction?.listing?.attributes?.availabilityPlan?.timezone || 'Etc/UTC';
+  const { bookingStart, bookingEnd } = bookingData(
+    transaction,
+    lineItemUnitType,
+    timeZone
+  );
 
   return (
     <TimeRange
@@ -176,14 +184,19 @@ export const InboxItem = props => {
   const lineItems = tx.attributes?.lineItems;
   const hasPricingData = lineItems.length > 0;
   const unitLineItem = getUnitLineItem(lineItems);
-  const quantity = hasPricingData && isPurchase ? unitLineItem.quantity.toString() : null;
-  const showStock = stockType === STOCK_MULTIPLE_ITEMS || (quantity && unitLineItem.quantity > 1);
+  const quantity =
+    hasPricingData && isPurchase ? unitLineItem.quantity.toString() : null;
+  const showStock =
+    stockType === STOCK_MULTIPLE_ITEMS ||
+    (quantity && unitLineItem.quantity > 1);
   const otherUser = isCustomer ? provider : customer;
   const otherUserDisplayName = <UserDisplayName user={otherUser} intl={intl} />;
   const isOtherUserBanned = otherUser.attributes.banned;
 
   const rowNotificationDot =
-    isSaleNotification || isOrderNotification ? <div className={css.notificationDot} /> : null;
+    isSaleNotification || isOrderNotification ? (
+      <div className={css.notificationDot} />
+    ) : null;
 
   const linkClasses = classNames(css.itemLink, {
     [css.bannedUserLink]: isOtherUserBanned,
@@ -193,6 +206,12 @@ export const InboxItem = props => {
     [css.stateActionNeeded]: actionNeeded,
     [css.stateNoActionNeeded]: !actionNeeded,
   });
+
+  const listingTitle = getTranslatedField(
+    listing?.attributes?.publicData,
+    'title',
+    listing?.attributes?.title
+  );
 
   return (
     <div className={css.item}>
@@ -206,7 +225,7 @@ export const InboxItem = props => {
       >
         <div className={css.rowNotificationDot}>{rowNotificationDot}</div>
         <div className={css.itemUsername}>{otherUserDisplayName}</div>
-        <div className={css.itemTitle}>{listing?.attributes?.title}</div>
+        <div className={css.itemTitle}>{listingTitle}</div>
         <div className={css.itemDetails}>
           {isBooking ? (
             <BookingTimeInfoMaybe transaction={tx} />
@@ -214,9 +233,13 @@ export const InboxItem = props => {
             <FormattedMessage id="InboxPage.quantity" values={{ quantity }} />
           ) : null}
         </div>
-        {availabilityType == AVAILABILITY_MULTIPLE_SEATS && unitLineItem?.seats ? (
+        {availabilityType == AVAILABILITY_MULTIPLE_SEATS &&
+        unitLineItem?.seats ? (
           <div className={css.itemSeats}>
-            <FormattedMessage id="InboxPage.seats" values={{ seats: unitLineItem.seats }} />
+            <FormattedMessage
+              id="InboxPage.seats"
+              values={{ seats: unitLineItem.seats }}
+            />
           </div>
         ) : null}
         <div className={css.itemState}>
@@ -273,13 +296,14 @@ export const InboxPageComponent = props => {
     return <NotFoundPage staticContext={props.staticContext} />;
   }
 
-  const { customer: isCustomerUserType, provider: isProviderUserType } = getCurrentUserTypeRoles(
-    config,
-    currentUser
-  );
+  const {
+    customer: isCustomerUserType,
+    provider: isProviderUserType,
+  } = getCurrentUserTypeRoles(config, currentUser);
 
   const isOrders = tab === 'orders';
-  const hasNoResults = !fetchInProgress && transactions.length === 0 && !fetchOrdersOrSalesError;
+  const hasNoResults =
+    !fetchInProgress && transactions.length === 0 && !fetchOrdersOrSalesError;
   const ordersTitle = intl.formatMessage({ id: 'InboxPage.ordersTitle' });
   const salesTitle = intl.formatMessage({ id: 'InboxPage.salesTitle' });
   const title = isOrders ? ordersTitle : salesTitle;
@@ -293,7 +317,9 @@ export const InboxPageComponent = props => {
     return foundConfig;
   };
   const toTxItem = tx => {
-    const transactionRole = isOrders ? TX_TRANSITION_ACTOR_CUSTOMER : TX_TRANSITION_ACTOR_PROVIDER;
+    const transactionRole = isOrders
+      ? TX_TRANSITION_ACTOR_CUSTOMER
+      : TX_TRANSITION_ACTOR_PROVIDER;
     let stateData = null;
     try {
       stateData = getStateData({ transaction: tx, transactionRole, intl });
@@ -303,8 +329,10 @@ export const InboxPageComponent = props => {
 
     const publicData = tx?.listing?.attributes?.publicData || {};
     const foundListingTypeConfig = findListingTypeConfig(publicData);
-    const { transactionType, stockType, availabilityType } = foundListingTypeConfig || {};
-    const process = tx?.attributes?.processName || transactionType?.transactionType;
+    const { transactionType, stockType, availabilityType } =
+      foundListingTypeConfig || {};
+    const process =
+      tx?.attributes?.processName || transactionType?.transactionType;
     const transactionProcess = resolveLatestProcessName(process);
     const isBooking = isBookingProcess(transactionProcess);
     const isPurchase = isPurchaseProcess(transactionProcess);
@@ -329,11 +357,18 @@ export const InboxPageComponent = props => {
 
   const hasOrderOrSaleTransactions = (tx, isOrdersTab, user) => {
     return isOrdersTab
-      ? user?.id && tx && tx.length > 0 && tx[0].customer.id.uuid === user?.id?.uuid
-      : user?.id && tx && tx.length > 0 && tx[0].provider.id.uuid === user?.id?.uuid;
+      ? user?.id &&
+          tx &&
+          tx.length > 0 &&
+          tx[0].customer.id.uuid === user?.id?.uuid
+      : user?.id &&
+          tx &&
+          tx.length > 0 &&
+          tx[0].provider.id.uuid === user?.id?.uuid;
   };
   const hasTransactions =
-    !fetchInProgress && hasOrderOrSaleTransactions(transactions, isOrders, currentUser);
+    !fetchInProgress &&
+    hasOrderOrSaleTransactions(transactions, isOrders, currentUser);
 
   const ordersTabMaybe = isCustomerUserType
     ? [
@@ -396,7 +431,9 @@ export const InboxPageComponent = props => {
               rootClassName={css.tabs}
               tabRootClassName={css.tab}
               tabs={tabs}
-              ariaLabel={intl.formatMessage({ id: 'InboxPage.screenreader.sidenav' })}
+              ariaLabel={intl.formatMessage({
+                id: 'InboxPage.screenreader.sidenav',
+              })}
             />{' '}
           </>
         }
@@ -426,7 +463,11 @@ export const InboxPageComponent = props => {
           {hasNoResults ? (
             <li key="noResults" className={css.noResults}>
               <FormattedMessage
-                id={isOrders ? 'InboxPage.noOrdersFound' : 'InboxPage.noSalesFound'}
+                id={
+                  isOrders
+                    ? 'InboxPage.noOrdersFound'
+                    : 'InboxPage.noSalesFound'
+                }
               />
             </li>
           ) : null}
@@ -446,7 +487,12 @@ export const InboxPageComponent = props => {
 };
 
 const mapStateToProps = state => {
-  const { fetchInProgress, fetchOrdersOrSalesError, pagination, transactionRefs } = state.InboxPage;
+  const {
+    fetchInProgress,
+    fetchOrdersOrSalesError,
+    pagination,
+    transactionRefs,
+  } = state.InboxPage;
   const {
     currentUser,
     currentUserSaleNotificationCount,

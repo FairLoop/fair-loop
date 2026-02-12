@@ -21,7 +21,7 @@ import { FieldCheckboxGroup, FieldSelect, FieldTextInput, FieldBoolean } from '.
 // Import modules from this directory
 import css from './CustomExtendedDataField.module.css';
 
-const createFilterOptions = options => options.map(o => ({ key: `${o.option}`, label: o.label }));
+const createFilterOptions = (options,intl) => options.map(o => ({ key: `${o.option}`, label: intl.formatMessage({ id: `Enum.${o.option}` }) }));
 
 const getLabel = fieldConfig => fieldConfig?.saveConfig?.label || fieldConfig?.label;
 
@@ -35,7 +35,7 @@ const CustomFieldEnum = props => {
   const placeholder =
     placeholderMessage ||
     intl.formatMessage({ id: 'CustomExtendedDataField.placeholderSingleSelect' });
-  const filterOptions = createFilterOptions(enumOptions);
+  const filterOptions = createFilterOptions(enumOptions, intl);
 
   const label = getLabel(fieldConfig);
 
@@ -63,10 +63,10 @@ const CustomFieldEnum = props => {
 };
 
 const CustomFieldMultiEnum = props => {
-  const { name, fieldConfig, defaultRequiredMessage, formId } = props;
+  const { name, fieldConfig, defaultRequiredMessage, formId, intl } = props;
   const { enumOptions = [], saveConfig } = fieldConfig || {};
   const { isRequired, requiredMessage } = saveConfig || {};
-  const label = getLabel(fieldConfig);
+  const label = intl.formatMessage({ id: `Enum.${fieldConfig.key}` }) || getLabel(fieldConfig);
   const validateMaybe = isRequired
     ? { validate: nonEmptyArray(requiredMessage || defaultRequiredMessage) }
     : {};
@@ -77,7 +77,7 @@ const CustomFieldMultiEnum = props => {
       id={formId ? `${formId}.${name}` : name}
       name={name}
       label={label}
-      options={createFilterOptions(enumOptions)}
+      options={createFilterOptions(enumOptions, intl)}
       {...validateMaybe}
     />
   ) : null;
@@ -86,7 +86,7 @@ const CustomFieldMultiEnum = props => {
 const CustomFieldText = props => {
   const { name, fieldConfig, defaultRequiredMessage, formId, intl } = props;
   const { placeholderMessage, isRequired, requiredMessage } = fieldConfig?.saveConfig || {};
-  const label = getLabel(fieldConfig);
+  const label = intl.formatMessage({ id: `Enum.${fieldConfig.key}` }) || getLabel(fieldConfig);
   const validateMaybe = isRequired
     ? { validate: required(requiredMessage || defaultRequiredMessage) }
     : {};
@@ -110,7 +110,7 @@ const CustomFieldLong = props => {
   const { name, fieldConfig, defaultRequiredMessage, formId, intl } = props;
   const { minimum, maximum, saveConfig } = fieldConfig;
   const { placeholderMessage, isRequired, requiredMessage } = saveConfig || {};
-  const label = getLabel(fieldConfig);
+  const label = intl.formatMessage({ id: `Enum.${fieldConfig.key}` }) || getLabel(fieldConfig);
   const placeholder =
     placeholderMessage || intl.formatMessage({ id: 'CustomExtendedDataField.placeholderLong' });
   const numberTooSmallMessage = intl.formatMessage(

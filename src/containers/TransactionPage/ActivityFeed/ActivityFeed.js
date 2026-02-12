@@ -16,11 +16,17 @@ import {
   TX_TRANSITION_ACTOR_SYSTEM,
 } from '../../../transactions/transaction';
 
-import { Avatar, InlineTextButton, ReviewRating, UserDisplayName } from '../../../components';
+import {
+  Avatar,
+  InlineTextButton,
+  ReviewRating,
+  UserDisplayName,
+} from '../../../components';
 
 import { stateDataShape } from '../TransactionPage.stateData';
 
 import css from './ActivityFeed.module.css';
+import { getTranslatedField } from '../../../util/fieldHelpers';
 
 const { Money } = sdkTypes;
 
@@ -34,12 +40,23 @@ const MIN_LENGTH_FOR_LONG_WORDS = 20;
  * @param {Object} intl Intl
  * @returns A rich text version of the message content
  */
-const getMessageContent = (message, transaction, intl, richTextOptions = {}) => {
+const getMessageContent = (
+  message,
+  transaction,
+  intl,
+  richTextOptions = {}
+) => {
   const { customer, provider } = transaction;
-  const customerBannedUuid = customer?.attributes.banned ? customer?.id.uuid : '';
-  const providerBannedUuid = provider?.attributes.banned ? provider?.id.uuid : '';
+  const customerBannedUuid = customer?.attributes.banned
+    ? customer?.id.uuid
+    : '';
+  const providerBannedUuid = provider?.attributes.banned
+    ? provider?.id.uuid
+    : '';
 
-  const isBannedSender = [customerBannedUuid, providerBannedUuid].includes(message.sender.id.uuid);
+  const isBannedSender = [customerBannedUuid, providerBannedUuid].includes(
+    message.sender.id.uuid
+  );
   const content = isBannedSender
     ? intl.formatMessage({
         id: 'TransactionPage.messageSenderBanned',
@@ -135,7 +152,12 @@ const TransitionMessage = props => {
     onOpenReviewModal,
     intl,
   } = props;
-  const { processName, processState, showReviewAsFirstLink, showReviewAsSecondLink } = stateData;
+  const {
+    processName,
+    processState,
+    showReviewAsFirstLink,
+    showReviewAsSecondLink,
+  } = stateData;
   const stateStatus = nextState === processState ? 'current' : 'past';
   const transitionName = transition.transition;
 
@@ -143,16 +165,27 @@ const TransitionMessage = props => {
   const actor =
     transition.by === ownRole
       ? 'you'
-      : [TX_TRANSITION_ACTOR_SYSTEM, TX_TRANSITION_ACTOR_OPERATOR].includes(transition.by)
+      : [TX_TRANSITION_ACTOR_SYSTEM, TX_TRANSITION_ACTOR_OPERATOR].includes(
+          transition.by
+        )
       ? transition.by
       : otherUsersName;
 
   const reviewLink = showReviewAsFirstLink ? (
-    <InlineTextButton onClick={onOpenReviewModal} rootClassName={css.reviewLink}>
-      <FormattedMessage id="TransactionPage.ActivityFeed.reviewLink" values={{ otherUsersName }} />
+    <InlineTextButton
+      onClick={onOpenReviewModal}
+      rootClassName={css.reviewLink}
+    >
+      <FormattedMessage
+        id="TransactionPage.ActivityFeed.reviewLink"
+        values={{ otherUsersName }}
+      />
     </InlineTextButton>
   ) : showReviewAsSecondLink ? (
-    <InlineTextButton onClick={onOpenReviewModal} rootClassName={css.reviewLink}>
+    <InlineTextButton
+      onClick={onOpenReviewModal}
+      rootClassName={css.reviewLink}
+    >
       <FormattedMessage
         id="TransactionPage.ActivityFeed.reviewAsSecondLink"
         values={{ otherUsersName }}
@@ -161,7 +194,9 @@ const TransitionMessage = props => {
   ) : null;
 
   // If there is a transition specific message, use it.
-  const messageConfig = stateData.transitionMessages?.find(m => m.transition === transitionName);
+  const messageConfig = stateData.transitionMessages?.find(
+    m => m.transition === transitionName
+  );
   const transitionMessage = messageConfig
     ? intl.formatMessage(
         { id: messageConfig.translationId },
@@ -245,7 +280,8 @@ const isMessage = item => item && item.type === 'message';
 
 // Compare function for sorting an array containing messages and transitions
 const compareItems = (a, b) => {
-  const itemDate = item => (isMessage(item) ? item.attributes.createdAt : item.createdAt);
+  const itemDate = item =>
+    isMessage(item) ? item.attributes.createdAt : item.createdAt;
   return itemDate(a) - itemDate(b);
 };
 
@@ -315,15 +351,26 @@ export const ActivityFeed = props => {
   const relevantTransitions = enhancedTransitions.filter(t =>
     process.isRelevantPastTransition(t.transition)
   );
-  const todayString = intl.formatMessage({ id: 'TransactionPage.ActivityFeed.today' });
+  const todayString = intl.formatMessage({
+    id: 'TransactionPage.ActivityFeed.today',
+  });
 
   // combine messages and transaction transitions
   const hideOldTransitions = hasOlderMessages || fetchMessagesInProgress;
-  const items = organizedItems(messages, relevantTransitions, hideOldTransitions);
+  const items = organizedItems(
+    messages,
+    relevantTransitions,
+    hideOldTransitions
+  );
 
   const messageListItem = message => {
-    const formattedDate = formatDateWithProximity(message.attributes.createdAt, intl, todayString);
-    const isOwnMessage = currentUser?.id && message?.sender?.id?.uuid === currentUser.id?.uuid;
+    const formattedDate = formatDateWithProximity(
+      message.attributes.createdAt,
+      intl,
+      todayString
+    );
+    const isOwnMessage =
+      currentUser?.id && message?.sender?.id?.uuid === currentUser.id?.uuid;
     const messageComponent = isOwnMessage ? (
       <OwnMessage
         message={message}
@@ -341,14 +388,22 @@ export const ActivityFeed = props => {
     );
 
     return (
-      <li id={`msg-${message.id.uuid}`} key={message.id.uuid} className={css.messageItem}>
+      <li
+        id={`msg-${message.id.uuid}`}
+        key={message.id.uuid}
+        className={css.messageItem}
+      >
         {messageComponent}
       </li>
     );
   };
 
   const transitionListItem = transition => {
-    const formattedDate = formatDateWithProximity(transition.createdAt, intl, todayString);
+    const formattedDate = formatDateWithProximity(
+      transition.createdAt,
+      intl,
+      todayString
+    );
     const { customer, provider, listing } = transaction || {};
 
     // Initially transition component is empty;
@@ -366,11 +421,18 @@ export const ActivityFeed = props => {
         : null;
 
       const listingTitle = listing.attributes.deleted
-        ? intl.formatMessage({ id: 'TransactionPage.ActivityFeed.deletedListing' })
-        : listing.attributes.title;
+        ? intl.formatMessage({
+            id: 'TransactionPage.ActivityFeed.deletedListing',
+          })
+        : getTranslatedField(
+            listing.attributes.publicData,
+            'title',
+            listing.attributes.title
+          );
 
       const ownRole = getUserTxRole(currentUser.id, transaction);
-      const otherUser = ownRole === TX_TRANSITION_ACTOR_PROVIDER ? customer : provider;
+      const otherUser =
+        ownRole === TX_TRANSITION_ACTOR_PROVIDER ? customer : provider;
 
       const offerInSubunits = transition.offerInSubunits;
       const negotiationOffer = offerInSubunits
@@ -385,7 +447,9 @@ export const ActivityFeed = props => {
               transition={transition}
               nextState={nextState}
               stateData={stateData}
-              deliveryMethod={transaction.attributes?.protectedData?.deliveryMethod || 'none'}
+              deliveryMethod={
+                transaction.attributes?.protectedData?.deliveryMethod || 'none'
+              }
               listingTitle={listingTitle}
               negotiationOffer={negotiationOffer}
               ownRole={ownRole}
@@ -406,7 +470,10 @@ export const ActivityFeed = props => {
       );
     }
     return (
-      <li key={`${transition.transition}-${transition.createdAt}`} className={css.transitionItem}>
+      <li
+        key={`${transition.transition}-${transition.createdAt}`}
+        className={css.transitionItem}
+      >
         {transitionComponent}
       </li>
     );
@@ -416,7 +483,10 @@ export const ActivityFeed = props => {
     <ul className={classes}>
       {hasOlderMessages ? (
         <li className={css.showOlderWrapper} key="show-older-messages">
-          <InlineTextButton className={css.showOlderButton} onClick={onShowOlderMessages}>
+          <InlineTextButton
+            className={css.showOlderButton}
+            onClick={onShowOlderMessages}
+          >
             <FormattedMessage id="TransactionPage.ActivityFeed.showOlderMessages" />
           </InlineTextButton>
         </li>

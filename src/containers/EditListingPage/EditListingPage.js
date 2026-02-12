@@ -374,8 +374,8 @@ const mapDispatchToProps = dispatch => ({
   onAddAvailabilityException: params => dispatch(requestAddAvailabilityException(params)),
   onDeleteAvailabilityException: params => dispatch(requestDeleteAvailabilityException(params)),
 
-  onUpdateListing: (tab, values, config) => dispatch(requestUpdateListing(tab, values, config)),
-  onCreateListingDraft: (values, config) => dispatch(requestCreateListingDraft(values, config)),
+  onUpdateListing: (tab, values, config, shouldTranslate) => dispatch(requestUpdateListing(tab, values, config, shouldTranslate)),
+  onCreateListingDraft: (values, config, shouldTranslate) => dispatch(requestCreateListingDraft(values, config, shouldTranslate)),
   onPublishListingDraft: listingId => dispatch(requestPublishListingDraft(listingId)),
   onImageUpload: (data, listingImageConfig) =>
     dispatch(requestImageUpload(data, listingImageConfig)),

@@ -1,6 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { createImageVariantConfig } from '../../util/sdkLoader';
-import { isErrorUserPendingApproval, isForbiddenError, storableError } from '../../util/errors';
+import {
+  isErrorUserPendingApproval,
+  isForbiddenError,
+  storableError,
+} from '../../util/errors';
 import { convertUnitToSubUnit, unitDivisor } from '../../util/currency';
 import {
   parseDateFromISO8601,
@@ -11,7 +15,10 @@ import {
   getStartOf,
 } from '../../util/dates';
 import { constructQueryParamName, isOriginInUse } from '../../util/search';
-import { hasPermissionToViewData, isUserAuthorized } from '../../util/userHelpers';
+import {
+  hasPermissionToViewData,
+  isUserAuthorized,
+} from '../../util/userHelpers';
 import { parse } from '../../util/urlHelpers';
 
 import { addMarketplaceEntities } from '../../ducks/marketplaceData.duck';
@@ -20,6 +27,10 @@ import { addMarketplaceEntities } from '../../ducks/marketplaceData.duck';
 // Current design has max 3 columns 12 is divisible by 2 and 3
 // So, there's enough cards to fill all columns on full pagination pages
 const RESULT_PAGE_SIZE = 24;
+const TRANSLATED_FIELD_LANGUAGES = ['en', 'nl', 'es', 'fr', 'de'];
+const translatedListingTitleFields = TRANSLATED_FIELD_LANGUAGES.map(
+  lang => `publicData.title_${lang}`
+);
 
 // ================ Helper Functions ================ //
 
@@ -46,7 +57,11 @@ const searchListingsPayloadCreator = ({ searchParams, config }, thunkAPI) => {
   //       ...and then turned enforceValidListingType config to true in configListing.js
   // Read More:
   // https://www.sharetribe.com/docs/how-to/manage-search-schemas-with-flex-cli/#adding-listing-search-schemas
-  const searchValidListingTypes = (listingTypes, listingTypePathParam, isListingTypeVariant) => {
+  const searchValidListingTypes = (
+    listingTypes,
+    listingTypePathParam,
+    isListingTypeVariant
+  ) => {
     return isListingTypeVariant
       ? {
           pub_listingType: listingTypePathParam,
@@ -60,17 +75,29 @@ const searchListingsPayloadCreator = ({ searchParams, config }, thunkAPI) => {
       : {};
   };
 
-  const constructCategoryPropertiesForAPI = (queryParamPrefix, categories, level, params) => {
+  const constructCategoryPropertiesForAPI = (
+    queryParamPrefix,
+    categories,
+    level,
+    params
+  ) => {
     const levelKey = `${queryParamPrefix}${level}`;
     const levelValue =
-      typeof params?.[levelKey] !== 'undefined' ? `${params?.[levelKey]}` : undefined;
+      typeof params?.[levelKey] !== 'undefined'
+        ? `${params?.[levelKey]}`
+        : undefined;
     const foundCategory = categories.find(cat => cat.id === levelValue);
     const subcategories = foundCategory?.subcategories || [];
     // Note: we might need to prepare nested categories too: categoryLevel1, categoryLevel2, categoryLevel3
     return foundCategory && subcategories.length > 0
       ? {
           [levelKey]: levelValue,
-          ...constructCategoryPropertiesForAPI(queryParamPrefix, subcategories, level + 1, params),
+          ...constructCategoryPropertiesForAPI(
+            queryParamPrefix,
+            subcategories,
+            level + 1,
+            params
+          ),
         }
       : foundCategory
       ? { [levelKey]: levelValue }
@@ -86,12 +113,19 @@ const searchListingsPayloadCreator = ({ searchParams, config }, thunkAPI) => {
    * @returns {Object} The prepared parameter object.
    */
   const prepareCategoryParams = (paramName, params) => {
-    const categoryConfig = config.search.defaultFilters?.find(f => f.schemaType === 'category');
+    const categoryConfig = config.search.defaultFilters?.find(
+      f => f.schemaType === 'category'
+    );
     const categories = config.categoryConfiguration.categories;
     const { key, scope } = categoryConfig || {};
     const categoryParamPrefix = constructQueryParamName(key, scope);
     return paramName.startsWith(categoryParamPrefix)
-      ? constructCategoryPropertiesForAPI(categoryParamPrefix, categories, 1, params)
+      ? constructCategoryPropertiesForAPI(
+          categoryParamPrefix,
+          categories,
+          1,
+          params
+        )
       : {};
   };
 
@@ -123,7 +157,9 @@ const searchListingsPayloadCreator = ({ searchParams, config }, thunkAPI) => {
    * @returns {Object} The prepared parameter object.
    */
   const prepareIntegerRangeParam = (paramName, params) => {
-    const integerRangeConfig = config.listing.listingFields?.find(f => f.schemaType === 'long');
+    const integerRangeConfig = config.listing.listingFields?.find(
+      f => f.schemaType === 'long'
+    );
     const { key, scope } = integerRangeConfig || {};
     const integerParamPrefix = constructQueryParamName(key, scope);
     return paramName.startsWith(integerParamPrefix)
@@ -141,7 +177,8 @@ const searchListingsPayloadCreator = ({ searchParams, config }, thunkAPI) => {
       }, {});
 
       // If the param is not handled by any of the handlers, we pass it through.
-      const currentParam = Object.keys(preparedParams).length > 0 ? preparedParams : { [k]: v };
+      const currentParam =
+        Object.keys(preparedParams).length > 0 ? preparedParams : { [k]: v };
 
       return { ...picked, ...currentParam };
     }, {});
@@ -150,7 +187,8 @@ const searchListingsPayloadCreator = ({ searchParams, config }, thunkAPI) => {
   };
 
   const priceSearchParams = priceParam => {
-    const inSubunits = value => convertUnitToSubUnit(value, unitDivisor(config.currency));
+    const inSubunits = value =>
+      convertUnitToSubUnit(value, unitDivisor(config.currency));
     const values = priceParam ? priceParam.split(',') : [];
     return priceParam && values.length === 2
       ? {
@@ -161,7 +199,9 @@ const searchListingsPayloadCreator = ({ searchParams, config }, thunkAPI) => {
 
   const datesSearchParams = datesParam => {
     const searchTZ = 'Etc/UTC';
-    const datesFilter = config.search.defaultFilters.find(f => f.key === 'dates');
+    const datesFilter = config.search.defaultFilters.find(
+      f => f.key === 'dates'
+    );
     const values = datesParam ? datesParam.split(',') : [];
     const hasValues = datesFilter && datesParam && values.length === 2;
     const { dateRangeMode, availability } = datesFilter || {};
@@ -180,7 +220,9 @@ const searchListingsPayloadCreator = ({ searchParams, config }, thunkAPI) => {
     const getProlongedStart = date => subtractTime(date, 14, 'hours', searchTZ);
     const getProlongedEnd = date => addTime(date, 12, 'hours', searchTZ);
 
-    const startDate = hasValues ? parseDateFromISO8601(values[0], searchTZ) : null;
+    const startDate = hasValues
+      ? parseDateFromISO8601(values[0], searchTZ)
+      : null;
     const endRaw = hasValues ? parseDateFromISO8601(values[1], searchTZ) : null;
     const endDate =
       hasValues && isNightlyMode
@@ -196,7 +238,9 @@ const searchListingsPayloadCreator = ({ searchParams, config }, thunkAPI) => {
       startDate.getTime() >= possibleStartDate.getTime() &&
       startDate.getTime() <= endDate.getTime();
 
-    const dayCount = isEntireRangeAvailable ? daysBetween(startDate, endDate) : 1;
+    const dayCount = isEntireRangeAvailable
+      ? daysBetween(startDate, endDate)
+      : 1;
     const day = 1440;
     const hour = 60;
     // When entire range is required to be available, we count minutes of included date range,
@@ -226,11 +270,15 @@ const searchListingsPayloadCreator = ({ searchParams, config }, thunkAPI) => {
     //   2) Add relaxed stockMode: "match-undefined"
     // The latter is used to filter out all the listings that explicitly are out of stock,
     // but keeps bookable and inquiry listings.
-    return hasDatesFilterInUse ? {} : { minStock: 1, stockMode: 'match-undefined' };
+    return hasDatesFilterInUse
+      ? {}
+      : { minStock: 1, stockMode: 'match-undefined' };
   };
 
   const seatsSearchParams = (seats, datesMaybe) => {
-    const seatsFilter = config.search.defaultFilters.find(f => f.key === 'seats');
+    const seatsFilter = config.search.defaultFilters.find(
+      f => f.key === 'seats'
+    );
     const hasDatesFilterInUse = Object.keys(datesMaybe).length > 0;
 
     // Seats filter cannot be applied without dates
@@ -254,7 +302,8 @@ const searchListingsPayloadCreator = ({ searchParams, config }, thunkAPI) => {
   const datesMaybe = datesSearchParams(dates);
   const stockMaybe = stockFilters(datesMaybe);
   const seatsMaybe = seatsSearchParams(seats, datesMaybe);
-  const sortMaybe = sort === config.search.sortConfig.relevanceKey ? {} : { sort };
+  const sortMaybe =
+    sort === config.search.sortConfig.relevanceKey ? {} : { sort };
 
   const params = {
     // The params that are related to listing fields and categories are prepared here.
@@ -264,7 +313,10 @@ const searchListingsPayloadCreator = ({ searchParams, config }, thunkAPI) => {
     // - With integer range params, we prepare the property for API.
     //   I.e. the range end must be exclusive. E.g. 1000,2000 -> 1000,2001
     // Note: invalid independent search params are still passed through
-    ...prepareAPIParams(restOfParams, [prepareCategoryParams, prepareIntegerRangeParam]),
+    ...prepareAPIParams(restOfParams, [
+      prepareCategoryParams,
+      prepareIntegerRangeParam,
+    ]),
     // If the search page variant is of type /s/:listingType, this sets the pub_listingType
     // query parameter to the value of the listing type path parameter. The ordering matters here,
     // since this value overrides any possible pub_listingType value coming from query parameters
@@ -355,16 +407,22 @@ export default searchPageSlice.reducer;
 
 // ================ Load data ================ //
 
-export const loadData = (params, search, config) => (dispatch, getState, sdk) => {
+export const loadData = (params, search, config) => (
+  dispatch,
+  getState,
+  sdk
+) => {
   // In private marketplace mode, this page won't fetch data if the user is unauthorized
   const { listingType: listingTypePathParam } = params || {};
   const state = getState();
   const currentUser = state.user?.currentUser;
   const isAuthorized = currentUser && isUserAuthorized(currentUser);
   const hasViewingRights = currentUser && hasPermissionToViewData(currentUser);
-  const isPrivateMarketplace = config.accessControl.marketplace.private === true;
+  const isPrivateMarketplace =
+    config.accessControl.marketplace.private === true;
   const canFetchData =
-    !isPrivateMarketplace || (isPrivateMarketplace && isAuthorized && hasViewingRights);
+    !isPrivateMarketplace ||
+    (isPrivateMarketplace && isAuthorized && hasViewingRights);
   if (!canFetchData) {
     return Promise.resolve();
   }
@@ -398,6 +456,7 @@ export const loadData = (params, search, config) => (dispatch, getState, sdk) =>
       include: ['author', 'images'],
       'fields.listing': [
         'title',
+        ...translatedListingTitleFields,
         'geolocation',
         'price',
         'deleted',

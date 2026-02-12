@@ -8,6 +8,7 @@ import {
   LISTING_STATE_DRAFT,
   SCHEMA_TYPE_ENUM,
   SCHEMA_TYPE_MULTI_ENUM,
+  SCHEMA_TYPE_TEXT,
 } from '../../../../util/types';
 import { LISTING_PAGE_PARAM_TYPE_NEW } from '../../../../util/urlHelpers';
 import {
@@ -240,6 +241,7 @@ const getInitialValues = (
   categoryKey
 ) => {
   const { description, title, publicData, privateData } = props?.listing?.attributes || {};
+  const detectedLanguage = publicData?.detectedListingLanguage
   // If details panel is accessed via URL like my.domain.com/l/draft/00000000-0000-0000-0000-000000000000/new/details?listingType=sell-bicycles,
   // we'll pick the preselected listing type from the URL.
   const preselectedListingType = props.locationSearch?.listingType;
@@ -249,9 +251,12 @@ const getInitialValues = (
 
   const nestedCategories = pickCategoryFields(publicData, categoryKey, 1, listingCategories);
   // Initial values for the form
+  const titleInEnglish = publicData[`title_${detectedLanguage}`] || title
+  const descriptionInEnglish = publicData[`description_${detectedLanguage}`] || description
+  const textFields = listingFields.filter(field => field.schemaType === SCHEMA_TYPE_TEXT);
   return {
-    title,
-    description,
+    title: titleInEnglish,
+    description: descriptionInEnglish,
     ...nestedCategories,
     // Transaction type info: listingType, transactionProcessAlias, unitType
     ...getTransactionInfo({ listingTypes, existingListingTypeInfo, preselectedListingType }),
@@ -269,6 +274,10 @@ const getInitialValues = (
       nestedCategories,
       listingFields
     ),
+    ...textFields.reduce((acc, field) => {
+      acc[field.key] = publicData[`${field.key}_${detectedLanguage}`] || field.value;
+      return acc;
+    }, {}),
   };
 };
 

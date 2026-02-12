@@ -7,8 +7,13 @@ import {
   isBookingProcessAlias,
   isNegotiationProcessAlias,
 } from '../transactions/transaction';
-import { SCHEMA_TYPE_MULTI_ENUM, SCHEMA_TYPE_TEXT, SCHEMA_TYPE_YOUTUBE } from './types';
+import {
+  SCHEMA_TYPE_MULTI_ENUM,
+  SCHEMA_TYPE_TEXT,
+  SCHEMA_TYPE_YOUTUBE,
+} from './types';
 import appSettings from '../config/settings';
+import { getUserLanguage } from '../app';
 
 const { stripeSupportedCurrencies, subUnitDivisors } = appSettings;
 
@@ -47,7 +52,10 @@ const getEntityTypeRestrictions = (entityTypeKey, config) => {
  * @returns true if listingTypeConfig allows the listingType
  */
 export const isFieldFor = (entityTypeKey, entityType, fieldConfig) => {
-  const { isLimited, limitToIds } = getEntityTypeRestrictions(entityTypeKey, fieldConfig);
+  const { isLimited, limitToIds } = getEntityTypeRestrictions(
+    entityTypeKey,
+    fieldConfig
+  );
 
   if (Array.isArray(entityType)) {
     return !isLimited || limitToIds.some(cid => entityType.includes(cid));
@@ -68,8 +76,16 @@ export const isFieldForCategory = (categories, fieldConfig) =>
  * @param {*} key attribute key in extended data
  * @returns
  */
+export const getTranslatedField = (data, key, fallback = null) => {
+  const savedLanguage = getUserLanguage();
+  const translatedKey = `${key}_${savedLanguage}`;
+  const value = data?.[translatedKey] || fallback;
+  return value != null ? value : null;
+};
+
 export const getFieldValue = (data, key) => {
-  const value = data?.[key];
+  const fallbackValue = data?.[key];
+  const value = getTranslatedField(data, key, fallbackValue);
   return value != null ? value : null;
 };
 
@@ -84,7 +100,12 @@ export const getFieldValue = (data, key) => {
  * @param {Array} categoryLevelOptions array of nested category structure
  * @returns pick valid prefixed properties
  */
-export const pickCategoryFields = (data, prefix, level, categoryLevelOptions = []) => {
+export const pickCategoryFields = (
+  data,
+  prefix,
+  level,
+  categoryLevelOptions = []
+) => {
   const currentCategoryKey = `${prefix}${level}`;
   const currentCategoryValue = data[currentCategoryKey];
   const isCategoryLevelSet = typeof currentCategoryValue !== 'undefined';
@@ -127,8 +148,15 @@ export const pickCustomFieldProps = (
   shouldPickFn
 ) => {
   return fieldConfigs?.reduce((pickedElements, config) => {
-    const { key, enumOptions, schemaType, scope = 'public', showConfig } = config;
-    const { label, unselectedOptions: showUnselectedOptions } = showConfig || {};
+    const {
+      key,
+      enumOptions,
+      schemaType,
+      scope = 'public',
+      showConfig,
+    } = config;
+    const { label, unselectedOptions: showUnselectedOptions } =
+      showConfig || {};
     const entityType = publicData && publicData[entityTypeKey];
     const isTargetEntityType = isFieldFor(entityTypeKey, entityType, config);
 
@@ -136,7 +164,6 @@ export const pickCustomFieldProps = (
       options.map(o => ({ key: `${o.option}`, label: o.label }));
 
     const shouldPick = shouldPickFn ? shouldPickFn(config) : true;
-
     const value =
       scope === 'public'
         ? getFieldValue(publicData, key)
@@ -144,7 +171,9 @@ export const pickCustomFieldProps = (
         ? getFieldValue(metadata, key)
         : null;
 
-    return isTargetEntityType && schemaType === SCHEMA_TYPE_MULTI_ENUM && shouldPick
+    return isTargetEntityType &&
+      schemaType === SCHEMA_TYPE_MULTI_ENUM &&
+      shouldPick
       ? [
           ...pickedElements,
           {
@@ -156,7 +185,10 @@ export const pickCustomFieldProps = (
             showUnselectedOptions: showUnselectedOptions !== false,
           },
         ]
-      : isTargetEntityType && !!value && config.schemaType === SCHEMA_TYPE_TEXT && shouldPick
+      : isTargetEntityType &&
+        !!value &&
+        config.schemaType === SCHEMA_TYPE_TEXT &&
+        shouldPick
       ? [
           ...pickedElements,
           {
@@ -214,7 +246,9 @@ export const isValidCurrencyForTransactionProcess = (
     isNegotiationProcessAlias(transactionProcessAlias);
 
   // Determine if the listing currency is supported by Stripe
-  const isStripeSupportedCurrency = stripeSupportedCurrencies.includes(listingCurrency);
+  const isStripeSupportedCurrency = stripeSupportedCurrencies.includes(
+    listingCurrency
+  );
 
   if (paymentProcessor === 'stripe') {
     // If using Stripe, only return true if both process and currency are compatible with Stripe
@@ -223,7 +257,8 @@ export const isValidCurrencyForTransactionProcess = (
     // If payment processor is not specified, allow any non-stripe related process with valid subunits or Stripe-related processes with supported currency
     return (
       (isStripeRelatedProcess && isStripeSupportedCurrency) ||
-      (!isStripeRelatedProcess && Object.keys(subUnitDivisors).includes(listingCurrency))
+      (!isStripeRelatedProcess &&
+        Object.keys(subUnitDivisors).includes(listingCurrency))
     );
   }
 };

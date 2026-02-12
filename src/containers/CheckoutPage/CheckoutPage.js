@@ -12,7 +12,10 @@ import {
   NO_ACCESS_PAGE_INITIATE_TRANSACTIONS,
   NO_ACCESS_PAGE_USER_PENDING_APPROVAL,
 } from '../../util/urlHelpers';
-import { hasPermissionToInitiateTransactions, isUserAuthorized } from '../../util/userHelpers';
+import {
+  hasPermissionToInitiateTransactions,
+  isUserAuthorized,
+} from '../../util/userHelpers';
 import { isErrorNoPermissionForInitiateTransactions } from '../../util/errors';
 import {
   INQUIRY_PROCESS_NAME,
@@ -23,14 +26,26 @@ import { requireListingImage } from '../../util/configHelpers';
 
 // Import global thunk functions
 import { isScrollingDisabled } from '../../ducks/ui.duck';
-import { confirmCardPayment, retrievePaymentIntent } from '../../ducks/stripe.duck';
+import {
+  confirmCardPayment,
+  retrievePaymentIntent,
+} from '../../ducks/stripe.duck';
 import { savePaymentMethod } from '../../ducks/paymentMethods.duck';
 
 // Import shared components
-import { IconSpinner, NamedRedirect, Page, TopbarSimplified } from '../../components';
+import {
+  IconSpinner,
+  NamedRedirect,
+  Page,
+  TopbarSimplified,
+} from '../../components';
 
 // Session helpers file needs to be imported before CheckoutPageWithPayment and CheckoutPageWithInquiryProcess
-import { storeData, clearData, handlePageData } from './CheckoutPageSessionHelpers';
+import {
+  storeData,
+  clearData,
+  handlePageData,
+} from './CheckoutPageSessionHelpers';
 
 // Import modules from this directory
 import {
@@ -48,6 +63,7 @@ import CheckoutPageWithPayment, {
 } from './CheckoutPageWithPayment';
 import CheckoutPageWithInquiryProcess from './CheckoutPageWithInquiryProcess';
 import css from './CheckoutPage.module.css';
+import { getTranslatedField } from '../../util/fieldHelpers';
 
 const STORAGE_KEY = 'CheckoutPage';
 
@@ -117,10 +133,13 @@ const EnhancedCheckoutPage = props => {
   const listing = pageData?.listing;
   const unitType = listing?.attributes?.publicData?.unitType;
   const isRequest = unitType === REQUEST;
-  const isOwnListing = currentUser?.id && listing?.author?.id?.uuid === currentUser?.id?.uuid;
+  const isOwnListing =
+    currentUser?.id && listing?.author?.id?.uuid === currentUser?.id?.uuid;
   const hasRequiredData = !!(listing?.id && listing?.author?.id && processName);
-  const shouldRedirect = isDataLoaded && !(hasRequiredData && (!isOwnListing || isRequest));
-  const shouldRedirectUnathorizedUser = isDataLoaded && !isUserAuthorized(currentUser);
+  const shouldRedirect =
+    isDataLoaded && !(hasRequiredData && (!isOwnListing || isRequest));
+  const shouldRedirectUnathorizedUser =
+    isDataLoaded && !isUserAuthorized(currentUser);
   // Redirect if the user has no transaction rights
   const shouldRedirectNoTransactionRightsUser =
     isDataLoaded &&
@@ -134,9 +153,12 @@ const EnhancedCheckoutPage = props => {
   // Redirection must happen before any data format error is thrown (e.g. wrong currency)
   if (shouldRedirect) {
     // eslint-disable-next-line no-console
-    console.error('Missing or invalid data for checkout, redirecting back to listing page.', {
-      listing,
-    });
+    console.error(
+      'Missing or invalid data for checkout, redirecting back to listing page.',
+      {
+        listing,
+      }
+    );
     return <NamedRedirect name="ListingPage" params={params} />;
     // Redirect to NoAccessPage if access rights are missing
   } else if (shouldRedirectUnathorizedUser) {
@@ -161,7 +183,12 @@ const EnhancedCheckoutPage = props => {
   );
   const showListingImage = requireListingImage(foundListingTypeConfig);
 
-  const listingTitle = listing?.attributes?.title;
+  const listingTitleOriginal = listing?.attributes?.title;
+  const listingTitle = getTranslatedField(
+    listing?.attributes?.publicData,
+    'title',
+    listingTitleOriginal
+  );
   const authorDisplayName = userDisplayNameAsString(listing?.author, '');
   const title = processName
     ? intl.formatMessage(
@@ -253,13 +280,43 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => ({
   dispatch,
-  fetchSpeculatedTransaction: (params, processAlias, txId, transitionName, isPrivileged) =>
-    dispatch(speculateTransaction(params, processAlias, txId, transitionName, isPrivileged)),
+  fetchSpeculatedTransaction: (
+    params,
+    processAlias,
+    txId,
+    transitionName,
+    isPrivileged
+  ) =>
+    dispatch(
+      speculateTransaction(
+        params,
+        processAlias,
+        txId,
+        transitionName,
+        isPrivileged
+      )
+    ),
   fetchStripeCustomer: () => dispatch(stripeCustomer()),
   onInquiryWithoutPayment: (params, processAlias, transitionName) =>
-    dispatch(initiateInquiryWithoutPayment(params, processAlias, transitionName)),
-  onInitiateOrder: (params, processAlias, transactionId, transitionName, isPrivileged) =>
-    dispatch(initiateOrder(params, processAlias, transactionId, transitionName, isPrivileged)),
+    dispatch(
+      initiateInquiryWithoutPayment(params, processAlias, transitionName)
+    ),
+  onInitiateOrder: (
+    params,
+    processAlias,
+    transactionId,
+    transitionName,
+    isPrivileged
+  ) =>
+    dispatch(
+      initiateOrder(
+        params,
+        processAlias,
+        transactionId,
+        transitionName,
+        isPrivileged
+      )
+    ),
   onRetrievePaymentIntent: params => dispatch(retrievePaymentIntent(params)),
   onConfirmCardPayment: params => dispatch(confirmCardPayment(params)),
   onConfirmPayment: (transactionId, transitionName, transitionParams) =>
@@ -269,14 +326,14 @@ const mapDispatchToProps = dispatch => ({
     dispatch(savePaymentMethod(stripeCustomer, stripePaymentMethodId)),
 });
 
-const CheckoutPage = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )
-)(EnhancedCheckoutPage);
+const CheckoutPage = compose(connect(mapStateToProps, mapDispatchToProps))(
+  EnhancedCheckoutPage
+);
 
-CheckoutPage.setInitialValues = (initialValues, saveToSessionStorage = false) => {
+CheckoutPage.setInitialValues = (
+  initialValues,
+  saveToSessionStorage = false
+) => {
   if (saveToSessionStorage) {
     const { listing, orderData } = initialValues;
     storeData(orderData, listing, null, STORAGE_KEY);

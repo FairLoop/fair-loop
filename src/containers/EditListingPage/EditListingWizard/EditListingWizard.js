@@ -770,6 +770,7 @@ class EditListingWizard extends Component {
 
 const EnhancedEditListingWizard = props => {
   const config = useConfiguration();
+  console.log({config})
   const routeConfiguration = useRouteConfiguration();
   const intl = useIntl();
   return (

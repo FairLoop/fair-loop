@@ -31,10 +31,10 @@ const SectionDetailsMaybe = props => {
         value
           ? intl.formatMessage({ id: 'SearchPage.detailYes' })
           : intl.formatMessage({ id: 'SearchPage.detailNo' });
-      const optionConfig = findSelectedOption(value);
+      // const optionConfig = findSelectedOption(value);
 
       return schemaType === 'enum'
-        ? filteredConfigs.concat({ key, value: optionConfig?.label, label })
+        ? filteredConfigs.concat({ key, value: intl.formatMessage({id:`Enum.${value}`}), label })
         : schemaType === 'boolean'
         ? filteredConfigs.concat({ key, value: getBooleanMessage(value), label })
         : schemaType === 'long'
