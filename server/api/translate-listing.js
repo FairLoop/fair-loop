@@ -11,9 +11,9 @@ const EXCLUDED_PUBLIC_DATA_KEYS = new Set([
   'categoryLevel3',
 ]);
 const DEFAULT_TRANSLATABLE_PUBLIC_TEXT_KEYS = new Set([
-  'naam_attractie',
-  'type_attractie',
-  'fabrikant',
+  'attraction_name',
+  'attraction_type',
+  'manufacturer',
 ]);
 
 const languageAliases = {
@@ -207,9 +207,8 @@ module.exports = async (req, res) => {
   try {
     const sdk = getSdk(req, res);
 
-    const currentUser = await sdk.currentUser.show();
-
-    if (!currentUser) {
+    const userResponse = await sdk.currentUser.show({ expand: true });
+    if (!userResponse) {
       const error = new Error('Unauthorized.');
       error.content = req.body;
       throw error;
@@ -253,7 +252,9 @@ module.exports = async (req, res) => {
     const parsedTranslations = await processTranslations({ originalFields });
 
     const detectedLanguage =
-      normalizeLanguage(parsedTranslations?.detectedLanguage) || 'en';
+      normalizeLanguage(parsedTranslations?.detectedLanguage) ||
+      userResponse.data.data.attributes.profile.publicData.language ||
+      'en';
     const translatedFields = normalizeTranslations({
       detectedLanguage,
       rawTranslations: parsedTranslations?.translations || {},
@@ -273,9 +274,20 @@ module.exports = async (req, res) => {
       throw error;
     }
 
+    const titleInEnglish =
+      detectedLanguage === 'en'
+        ? originalFields.title
+        : translatedFields.title_en;
+    const descriptionInEnglish =
+      detectedLanguage === 'en'
+        ? originalFields.description
+        : translatedFields.description_en;
+
     const response = await createOrUpdate(
       {
         ...listingData,
+        title: titleInEnglish,
+        description: descriptionInEnglish,
         publicData: {
           ...existingPublicData,
           ...translatedFields,

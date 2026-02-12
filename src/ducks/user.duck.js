@@ -12,6 +12,7 @@ import {
 
 import { authInfo } from './auth.duck';
 import { updateStripeConnectAccount } from './stripeConnectAccount.duck';
+import { getUserLanguage } from '../app';
 
 // ================ Helper Functions ================ //
 
@@ -216,7 +217,7 @@ const fetchCurrentUserPayloadCreator = (options, thunkAPI) => {
       log.setUserId(currentUser.id.uuid);
       return currentUser;
     })
-    .then(currentUser => {
+    .then(async currentUser => {
       // If currentUser is not active (e.g. in 'pending-approval' state),
       // then they don't have listings or transactions that we care about.
       if (isUserAuthorized(currentUser)) {
@@ -231,6 +232,22 @@ const fetchCurrentUserPayloadCreator = (options, thunkAPI) => {
         if (!currentUser.attributes.emailVerified) {
           dispatch(fetchCurrentUserHasOrders());
         }
+      }
+
+      const storedLanguage = getUserLanguage();
+      const currentUserLanguage = currentUser.attributes?.profile?.publicData?.language;
+      if (storedLanguage !== currentUserLanguage) {
+        const response = await sdk.currentUser.updateProfile(
+          { publicData: { language: storedLanguage } },
+          { expand: true }
+        );
+        const [newCurrentUser] = denormalisedResponseEntities(response);
+        if (!newCurrentUser) {
+          throw new Error('Expected a resource in the sdk.currentUser.updateProfile response');
+        }
+        const newestCurrentUser = mergeCurrentUser(currentUser, newCurrentUser);
+        dispatch(authInfo());
+        return newestCurrentUser;
       }
 
       // Make sure auth info is up to date
@@ -319,7 +336,9 @@ const userSlice = createSlice({
       state.currentUserNotificationCountError = null;
     },
     setCurrentUser: (state, action) => {
-      state.currentUser = mergeCurrentUser(state.currentUser, action.payload);
+      const newCurrentUser = mergeCurrentUser(state.currentUser, action.payload);
+      console.log({newCurrentUser,payload:action.payload})
+      state.currentUser = newCurrentUser;
     },
     setCurrentUserHasOrders: state => {
       state.currentUserHasOrders = true;

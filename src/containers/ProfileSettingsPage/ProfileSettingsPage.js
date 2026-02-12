@@ -24,6 +24,8 @@ import ProfileSettingsForm from './ProfileSettingsForm/ProfileSettingsForm';
 
 import { updateProfile, uploadImage } from './ProfileSettingsPage.duck';
 import css from './ProfileSettingsPage.module.css';
+import { LANGUAGE_STORAGE_KEY } from '../../app';
+import { isFulfilled } from '@reduxjs/toolkit';
 
 const onImageUploadHandler = (values, fn) => {
   const { id, imageId, file } = values;
@@ -87,9 +89,14 @@ export const ProfileSettingsPageComponent = props => {
   const { userFields, userTypes = [] } = config.user;
   const publicUserFields = userFields.filter(uf => uf.scope === 'public');
 
-  const handleSubmit = (values, userType) => {
-    const { firstName, lastName, displayName, bio: rawBio, ...rest } = values;
+  const handleLanguageChange = async languageCode => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, languageCode);
+    }
+  };
 
+  const handleSubmit = async (values, userType) => {
+    const { firstName, lastName, displayName, bio: rawBio, pub_language , ...rest } = values;
     const displayNameMaybe = displayName
       ? { displayName: displayName.trim() }
       : { displayName: null };
@@ -103,7 +110,7 @@ export const ProfileSettingsPageComponent = props => {
       ...displayNameMaybe,
       bio,
       publicData: {
-        ...pickUserFieldsData(rest, 'public', userType, userFields),
+        ...pickUserFieldsData({ pub_language , ...rest}, 'public', userType, userFields),
       },
     };
     const uploadedImage = props.image;
@@ -114,7 +121,13 @@ export const ProfileSettingsPageComponent = props => {
         ? { ...profile, profileImageId: uploadedImage.imageId }
         : profile;
 
-    onUpdateProfile(updatedValues);
+    const response = await onUpdateProfile(updatedValues);
+    const isFulfilledResponse = isFulfilled(response)
+    const isLanguageChanged = pub_language !== currentUser?.attributes?.profile?.publicData?.language;
+    if (isLanguageChanged && isFulfilledResponse) {
+      handleLanguageChange(pub_language);
+      window.location.reload();
+    }
   };
 
   const user = ensureCurrentUser(currentUser);

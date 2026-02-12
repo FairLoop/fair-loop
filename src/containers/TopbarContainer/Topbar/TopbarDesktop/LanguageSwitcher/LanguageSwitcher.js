@@ -4,6 +4,8 @@ import { Menu, MenuLabel, MenuContent, MenuItem } from '../../../../../component
 
 import css from './LanguageSwitcher.module.css';
 import { LANGUAGE_STORAGE_KEY } from '../../../../../app';
+import { connect } from 'react-redux';
+import { updateProfile } from '../../../../ProfileSettingsPage/ProfileSettingsPage.duck';
 
 // Language configurations
 export const LANGUAGES = [
@@ -45,7 +47,7 @@ export const DEFAULT_LANGUAGE = 'en';
  * @param {Function} props.onLanguageChange - Callback function when language changes
  * @returns {JSX.Element} language switcher component
  */
-const LanguageSwitcher = ({ onLanguageChange }) => {
+const LanguageSwitcher = ({ onLanguageChange, currentUser }) => {
   // Get initial language from localStorage or use default
   const getInitialLanguage = () => {
     if (typeof window !== 'undefined') {
@@ -64,7 +66,7 @@ const LanguageSwitcher = ({ onLanguageChange }) => {
     setMounted(true);
   }, []);
 
-  const handleLanguageChange = languageCode => {
+  const handleLanguageChange = async languageCode => {
     setCurrentLanguage(languageCode);
 
     // Save to localStorage
@@ -73,8 +75,8 @@ const LanguageSwitcher = ({ onLanguageChange }) => {
     }
 
     // Call the callback if provided
-    if (onLanguageChange) {
-      onLanguageChange(languageCode);
+    if (onLanguageChange && currentUser?.id?.uuid) {
+      await onLanguageChange(languageCode);
     }
 
     // Force a hard reload with cache clear to ensure clean state
@@ -83,6 +85,14 @@ const LanguageSwitcher = ({ onLanguageChange }) => {
       window.location.href = window.location.href;
     }
   };
+
+  const currentUserLanguage = currentUser?.attributes?.profile?.publicData?.language;
+  
+  useEffect(() => {
+    if (currentUserLanguage) {
+      setCurrentLanguage(currentUserLanguage);
+    }
+  }, [currentUserLanguage, mounted]);
 
   // Get current language object
   const currentLang = LANGUAGES.find(lang => lang.code === currentLanguage) || LANGUAGES[0];
@@ -122,4 +132,20 @@ const LanguageSwitcher = ({ onLanguageChange }) => {
   );
 };
 
-export default LanguageSwitcher;
+const mapDispatchToProps = dispatch => {
+  return {
+    onLanguageChange: languageCode => {
+      return dispatch(
+        updateProfile({ publicData: { language: languageCode } })
+      );
+    },
+  };
+};
+
+const mapStateToProps = state => {
+  return {
+    currentUser: state.user.currentUser,
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(LanguageSwitcher);

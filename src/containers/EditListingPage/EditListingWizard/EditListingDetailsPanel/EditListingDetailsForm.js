@@ -105,7 +105,7 @@ const FieldSelectListingType = props => {
           const type = config.listingType;
           return (
             <option key={type} value={type}>
-              {intl.formatMessage({ id: `ListingType.${type}` })}
+              {intl.formatMessage({ id: `Enum.${type}` })}
             </option>
           );
         })}
@@ -178,7 +178,7 @@ const CategoryField = props => {
 
           {currentCategoryOptions.map(option => (
             <option key={option.id} value={option.id}>
-              {intl.formatMessage({ id: `Category.${option.id}` })}
+              {intl.formatMessage({ id: `Enum.${option.id}` })}
             </option>
           ))}
         </FieldSelect>

@@ -147,7 +147,7 @@ const Option = props => {
   const isClickable = !isOptSelected || (isOptSelected && isSuboptionSelected);
   const cursorMaybe = isClickable ? { cursor: 'pointer' } : { cursor: 'default' };
 
-  const optionLabelRaw = label || option;
+  const optionLabelRaw = intl.formatMessage({ id: `Enum.${option}` }) || label || option;
   const optionLabel = richText(optionLabelRaw, {
     longWordMinLength: MIN_LENGTH_FOR_LONG_WORDS,
     longWordClass: css.longWord,

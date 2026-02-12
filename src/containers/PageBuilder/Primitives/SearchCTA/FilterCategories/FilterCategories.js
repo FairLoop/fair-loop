@@ -139,7 +139,7 @@ const CategoryDropdown = ({ input, className, rootClassName, categories, alignLe
                   <span
                     className={isSelected ? css.dropdownItemBorderSelected : css.dropdownItemBorder}
                   />
-                  {name}
+                  {id !== 'all-categories' ? intl.formatMessage({ id: `Enum.${id}` }) : name}
                 </li>
               );
             })}
