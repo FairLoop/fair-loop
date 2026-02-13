@@ -1554,5 +1554,12 @@
   "Enum.width_m": "Width in meters (optional)",
   "Enum.depth_m": "Depth in meters (optional)",
   "Enum.length_m": "Length in meters (optional)",
-  "Enum.plus_toys": "Plus toy"
+  "Enum.plus_toys": "Plus toy",
+  "Footer.about_us": "About Us",
+  "Footer.search_ads": "Search Ads",
+  "Footer.place_an_ad": "Place an Ad",
+  "Footer.terms_of_service": "Terms of Service",
+  "Footer.privacy_policy": "Privacy Policy",
+  "Footer.slogan": "The marketplace for the fairground industry!",
+  "Footer.copyright": "© 2025 Fairloop. All rights reserved."
 }

@@ -6,6 +6,8 @@ import BlockContainer from '../BlockContainer';
 
 import css from './BlockFooter.module.css';
 
+import { useIntl } from '../../../../util/reactIntl';
+
 /**
  * @typedef {Object} FieldComponentConfig
  * @property {ReactNode} component
@@ -31,8 +33,20 @@ import css from './BlockFooter.module.css';
  */
 const BlockFooter = props => {
   const { blockId, className, rootClassName, textClassName, text, options } = props;
+  const intl = useIntl();
+
+  // Resolve Footer.xxx translation keys in markdown content
+  const resolvedText = text?.content
+    ? {
+        ...text,
+        content: text.content.replace(/Footer\.(\w+)/g, match => {
+          return intl.messages[match] || match;
+        }),
+      }
+    : text;
+
   const classes = classNames(rootClassName || css.root, className);
-  const hasTextComponentFields = hasDataInFields([text], options);
+  const hasTextComponentFields = hasDataInFields([resolvedText], options);
 
   return (
     <BlockContainer id={blockId} className={classes}>
@@ -41,7 +55,7 @@ const BlockFooter = props => {
           className={classNames(textClassName, css.text)}
           aria-label={blockId || 'Footer navigation'}
         >
-          <Field data={text} options={options} />
+          <Field data={resolvedText} options={options} />
         </nav>
       ) : null}
     </BlockContainer>

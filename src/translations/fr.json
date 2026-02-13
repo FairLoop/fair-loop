@@ -1554,5 +1554,12 @@
   "Enum.width_m": "Largeur en mètres (optionnel)",
   "Enum.depth_m": "Profondeur en mètres (optionnel)",
   "Enum.length_m": "Longueur en mètres (optionnel)",
-  "Enum.plus_toys": "Plus Toy"
+  "Enum.plus_toys": "Plus Toy",
+  "Footer.about_us": "À propos",
+  "Footer.search_advertising": "Rechercher des annonces",
+  "Footer.place_an_ad": "Placer une annonce",
+  "Footer.terms_of_service": "Conditions d'utilisation",
+  "Footer.privacy_policy": "Politique de confidentialité",
+  "Footer.slogan": "La marketplace pour l'industrie foraine!",
+  "Footer.copyright": "© 2025 Fairloop. Tous droits réservés."
 }

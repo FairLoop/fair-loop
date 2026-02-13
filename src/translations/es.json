@@ -1553,5 +1553,12 @@
   "Enum.width_m": "Ancho en metros (opcional)",
   "Enum.depth_m": "Profundidad en metros (opcional)",
   "Enum.length_m": "Longitud en metros (opcional)",
-  "Enum.plus_toys": "Plus Toy"
+  "Enum.plus_toys": "Plus Toy",
+  "Footer.about_us": "Sobre nosotros",
+  "Footer.search_advertising": "Buscar anuncios",
+  "Footer.place_an_ad": "Publicar un anuncio",
+  "Footer.terms_of_service": "Términos de servicio",
+  "Footer.privacy_policy": "Política de privacidad",
+  "Footer.slogan": "¡El mercado para la industria ferial!",
+  "Footer.copyright": "© 2025 Fairloop. Todos los derechos reservados."
 }
