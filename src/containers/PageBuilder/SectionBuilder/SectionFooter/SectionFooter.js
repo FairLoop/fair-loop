@@ -8,6 +8,8 @@ import BlockBuilder from '../../BlockBuilder';
 import SectionContainer from '../SectionContainer';
 import css from './SectionFooter.module.css';
 
+import { useIntl } from '../../../../util/reactIntl';
+
 // The number of columns (numberOfColumns) affects styling
 
 const GRID_CONFIG = [
@@ -84,6 +86,18 @@ const SectionFooter = props => {
     linkLogoToExternalSite,
   } = props;
 
+  const intl = useIntl();
+
+  // Resolve translation key if the field content is a known intl message key
+  const resolveKeys = fieldData => {
+    if (!fieldData?.content) return fieldData;
+    const translated = intl.messages[fieldData.content];
+    return translated ? { ...fieldData, content: translated } : fieldData;
+  };
+
+  const resolvedSlogan = resolveKeys(slogan);
+  const resolvedCopyright = resolveKeys(copyright);
+
   // If external mapping has been included for fields
   // E.g. { h1: { component: MyAwesomeHeader } }
   const fieldComponents = options?.fieldComponents;
@@ -125,18 +139,18 @@ const SectionFooter = props => {
             />
           </div>
           <div className={css.sloganMobile}>
-            <Field data={slogan} className={css.slogan} />
+            <Field data={resolvedSlogan} className={css.slogan} />
           </div>
           <div className={css.detailsInfo}>
             <div className={css.sloganDesktop}>
-              <Field data={slogan} className={css.slogan} />
+              <Field data={resolvedSlogan} className={css.slogan} />
             </div>
             {showSocialMediaLinks ? (
               <div className={css.icons}>
                 <BlockBuilder blocks={linksWithBlockId} sectionId={sectionId} options={options} />
               </div>
             ) : null}
-            <Field data={copyright} className={css.copyright} />
+            <Field data={resolvedCopyright} className={css.copyright} />
           </div>
           <div className={classNames(css.grid, getGridCss(numberOfColumns))}>
             <BlockBuilder blocks={blocks} sectionId={sectionId} options={options} />

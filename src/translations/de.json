@@ -1553,5 +1553,12 @@
   "Enum.width_m": "Breedte in meters (optioneel)",
   "Enum.depth_m": "Diepte in meters (optioneel)",
   "Enum.length_m": "Lengte in meters (optioneel)",
-  "Enum.plus_toys": "Plus Toy"
+  "Enum.plus_toys": "Plus Toy",
+  "Footer.about_us": "Über uns",
+  "Footer.search_advertising": "Anzeigen suchen",
+  "Footer.place_an_ad": "Anzeige aufgeben",
+  "Footer.terms_of_service": "Nutzungsbedingungen",
+  "Footer.privacy_policy": "Datenschutzrichtlinie",
+  "Footer.slogan": "Der Marktplatz für die Kirmesindustrie!",
+  "Footer.copyright": "© 2025 Fairloop. Alle Rechte vorbehalten."
 }
