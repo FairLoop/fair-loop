@@ -21,7 +21,8 @@ import { FieldCheckboxGroup, FieldSelect, FieldTextInput, FieldBoolean } from '.
 // Import modules from this directory
 import css from './CustomExtendedDataField.module.css';
 
-const createFilterOptions = (options,intl) => options.map(o => ({ key: `${o.option}`, label: intl.formatMessage({ id: `Enum.${o.option}` }) }));
+const createFilterOptions = (options, intl) =>
+  options.map(o => ({ key: `${o.option}`, label: intl.formatMessage({ id: `Enum.${o.option}` }) }));
 
 const getLabel = fieldConfig => fieldConfig?.saveConfig?.label || fieldConfig?.label;
 
@@ -37,7 +38,7 @@ const CustomFieldEnum = props => {
     intl.formatMessage({ id: 'CustomExtendedDataField.placeholderSingleSelect' });
   const filterOptions = createFilterOptions(enumOptions, intl);
 
-  const label = getLabel(fieldConfig);
+  const label = intl.formatMessage({ id: `Enum.${fieldConfig.key}` }) || getLabel(fieldConfig);
 
   return filterOptions ? (
     <FieldSelect
