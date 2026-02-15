@@ -20,7 +20,7 @@ import css from './LinksMenu.module.css';
  * @param {*} props contain keys: linkConfig, currentPage
  * @returns NamedLink or ExternalLink
  */
-const LinkComponent = ({ linkConfig, currentPage }) => {
+const LinkComponent = ({ linkConfig, currentPage, intl }) => {
   const { text, type, href, route } = linkConfig;
   const getCurrentPageClass = page => {
     const hasPageName = name => currentPage?.indexOf(name) === 0;
@@ -41,14 +41,14 @@ const LinkComponent = ({ linkConfig, currentPage }) => {
     return (
       <NamedLink name={name} params={params} to={to} className={className}>
         <span className={css.menuItemBorder} />
-        {text}
+        {intl.formatMessage({ id: text })}
       </NamedLink>
     );
   }
   return (
     <ExternalLink href={href} className={css.menuLink}>
       <span className={css.menuItemBorder} />
-      {text}
+      {intl.formatMessage({ id: text })}
     </ExternalLink>
   );
 };
@@ -159,7 +159,7 @@ const LinksMenu = props => {
           {links.map((linkConfig, index) => {
             return (
               <MenuItem key={`${linkConfig.text}_${index}`}>
-                <LinkComponent linkConfig={linkConfig} currentPage={currentPage} />
+                <LinkComponent linkConfig={linkConfig} currentPage={currentPage} intl={intl} />
               </MenuItem>
             );
           })}

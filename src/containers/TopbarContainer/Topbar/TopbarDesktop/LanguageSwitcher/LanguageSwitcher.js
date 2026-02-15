@@ -21,17 +21,17 @@ export const LANGUAGES = [
   },
   {
     code: 'de',
-    label: 'German',
+    label: 'Deutsch',
     flag: '🇩🇪',
   },
   {
     code: 'fr',
-    label: 'French',
+    label: 'Français',
     flag: '🇫🇷',
   },
   {
     code: 'es',
-    label: 'Spanish',
+    label: 'Español',
     flag: '🇪🇸',
   },
 ];
